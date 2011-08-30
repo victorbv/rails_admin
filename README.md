@@ -29,6 +29,8 @@ Supported ORMs:
 
 ## <a name="notices">Notices</a>
 
+Default scopes are now fully *active* in list views (ordering is overriden, obvisously) as they used to a while ago. This is not configurable (that would bring consistency issues with cancan scoping which brings default scope). If you don't want some default scopes in RailsAdmin, either move your scoping rules to cancan, or activate your default scope conditionnaly on user/url prefix.
+
 Configuration with ActiveRecord::Base#rails_admin is not recommended anymore and should be
 considered as expermimental (development) until further notice. Unfortunately, implementation
 of this feature is tougher than imagined. Any help is welcome, as usual.
@@ -689,6 +691,10 @@ The field's output can be modified:
 
             pretty_value do # used in list view columns and show views, defaults to formatted_value for non-association fields
               value.titleize
+            end
+
+            export_value do
+              value.camelize # used in exports, where no html/data is allowed
             end
           end
           field :created_at
@@ -1448,6 +1454,7 @@ Here are some ways *you* can contribute:
 * by refactoring code
 * by resolving [issues](https://github.com/sferik/rails_admin/issues)
 * by reviewing patches
+* [financially](http://pledgie.com/campaigns/15917)
 
 ## <a name="issues">Submitting an Issue</a>
 We use the [GitHub issue tracker](https://github.com/sferik/rails_admin/issues) to track bugs and
