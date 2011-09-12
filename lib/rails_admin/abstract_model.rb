@@ -18,18 +18,23 @@ module RailsAdmin
         possible_models = RailsAdmin::Config.included_models.map(&:to_s).presence || ([Rails.application] + Rails::Application::Railties.engines).map do |app|
           (app.paths['app/models'] + app.config.autoload_paths).map do |path|
             Dir.glob(app.root.join(path, "**/*.rb")).map do |filename|
-              File.read(filename).scan(/class ([\w\d_\-:]+)/)
+              lchomp(filename, "#{app.root.join(path)}/").chomp('.rb').classify  # app/models/module/class.rb => module/class.rb => module/class => Module::Class
             end
           end
         end.flatten
-        excluded_models = (RailsAdmin::Config.excluded_models.map(&:to_s) + ['History'])
-        (possible_models - excluded_models).uniq.sort{|x, y| x.to_s <=> y.to_s}.map{|model| lookup model }.compact
+        excluded_models = (RailsAdmin::Config.excluded_models.map(&:to_s) + ['RailsAdmin::History'])
+        (possible_models - excluded_models).uniq.sort{|x, y| x.to_s <=> y.to_s}.map{|model| lookup(model) }.compact
       )
     end
 
     # Given a string +model_name+, finds the corresponding model class
     def self.lookup(model_name)
-      (model = model_name.constantize rescue nil) && model.is_a?(Class) && (superclasses(model).include?(ActiveRecord::Base) ? model : nil) || nil
+      begin
+        (model = model_name.constantize rescue nil) && model.is_a?(Class) && (superclasses(model).include?(ActiveRecord::Base) ? model : nil) || nil
+      rescue LoadError
+        Rails.logger.error "Error while loading '#{model_name}': #{$!}"
+        nil
+      end
     end
 
     def initialize(model)
@@ -54,6 +59,10 @@ module RailsAdmin
         klass = klass.superclass
       end
       superclasses
+    end
+    
+    def self.lchomp(base, arg) # yeah.. delete was probably safe, but never know.
+      base.to_s.reverse.chomp(arg.to_s.reverse).reverse
     end
   end
 end
