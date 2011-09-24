@@ -11,8 +11,10 @@
 
 RailsAdmin.config do |config|
   
-  config.current_user_method { current_<%= @model_name %> } #auto-generated
-
+  config.current_user_method { current_<%= @model_name %> } # auto-generated
+  
+  config.main_app_name { ['<%= Rails.application.engine_name.titleize.chomp(' Application') %>', 'Admin'] } # auto-generated
+  
   #  ==> Authentication (before_filter)
   # This is run inside the controller instance so you can setup any authentication you need to.
   # By default, the authentication will run via warden if available.
@@ -35,7 +37,7 @@ RailsAdmin.config do |config|
   # Use cancan https://github.com/ryanb/cancan for authorization:
   # config.authorize_with :cancan
   
-  # Or use a custom dead-stupid authorization rule:
+  # Or use simple custom authorization rule:
   # config.authorize_with do
   #   redirect_to root_path unless warden.user.is_admin?
   # end
@@ -44,11 +46,7 @@ RailsAdmin.config do |config|
   # Default is :default
   # current_user is accessible in the block if you want to make it user specific.
   # config.attr_accessible_role { :default }
-  
-  #  ==> Dev. settings
-  # Reload rails_admin with each request (can be slow) in development mode
-  # config.reload_between_requests = true
-  
+    
   #  ==> Global show view settings
   # Display empty fields in show views
   # config.compact_show_view = false
