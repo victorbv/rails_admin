@@ -29,7 +29,7 @@ ro:
       no_file_found: "Niciun fișier găsit"
     credentials:
       log_out: "Dezautentificare"
-    list:
+    index:
       show_action: "Arată"
       edit_action: "Modifică"
       delete_action: "Șterge"
@@ -97,12 +97,12 @@ ro:
       exported: "exportat(ă)"
     breadcrumbs:
       delete: "șterge"
-      history: "istoric"
+      for_object: "istoric"
       show: "arată"
       edit: "modifică"
       export: "exportă"
       bulk_destroy: "șterge"
       new: "nou"
-      model_history: "istoric"
-      list: "listează"
+      for_model: "istoric"
+      index: "listează"
       dashboard: "tablou"

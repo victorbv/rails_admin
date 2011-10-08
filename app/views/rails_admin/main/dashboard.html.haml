@@ -1,43 +1,33 @@
-#block-tables.block
-  = breadcrumbs_for :dashboard, nil
+%table.zebra-striped
+  %thead
+    %tr
+      %th.model-name= t "admin.dashboard.model_name"
+      %th.last-used= t "admin.dashboard.last_used"
+      %th.records= t "admin.dashboard.records"
+      %th.controls
+  %tbody
+    - @abstract_models.each do |abstract_model|
+      - if authorized? :index, abstract_model
+        - index_path = index_path(:model_name => abstract_model.to_param)
+        - row_class = "#{cycle("odd", "even")}#{" link" if index_path}"
 
-  .content
-    %h2.title= @page_name
-    .inner
-      = render(:partial => 'layouts/rails_admin/flash', :locals => {:flash => flash})
-      %table.table.grid
-        %thead
-          %tr
-            %th.start
-              = t "admin.dashboard.model_name"
-            %th= t "admin.dashboard.last_used"
-            %th= t "admin.dashboard.records"
-            %th=# t "admin.dashboard.modify"
-        %tbody
-          - @abstract_models.each do |abstract_model|
-            - if authorized? :list, abstract_model
-              - list_path = list_path(:model_name => abstract_model.to_param)
-              - row_class = "#{cycle("odd", "even")}#{" link" if list_path}"
-
-              %tr{:class => row_class, :"data-link" => list_path}
-                %td.start
-                  %span.show= link_to RailsAdmin.config(abstract_model).label, list_path
-                %td
-                  - if (last_used = @most_recent_changes[abstract_model.pretty_name])
-                    = time_ago_in_words last_used
-                    = t "admin.dashboard.ago"
-                %td.count
-                  %span.number= @count[abstract_model.pretty_name]
-                  %span.scale
-                    - percent = @count[abstract_model.pretty_name] * 100 / @max unless @max == 0
-                    - percent = 1 if percent.nil?
-                    %div{:class => "bar #{get_indicator(percent)}", :style => "width:#{percent}%;"}
-                %td.last
-                  - if authorized? :new, abstract_model
-                    - new_path = new_path(:model_name => abstract_model.to_param)
-                    = action_icon(new_path, :add, t("admin.dashboard.add_new"))
-                  - history_path = history_model_path(:model_name => abstract_model.to_param)
-                  = action_icon(history_path, :calendar, t("admin.history.name"))
+        %tr{:class => row_class, :"data-link" => index_path}
+          %td
+            %span.show= link_to RailsAdmin.config(abstract_model).label, index_path
+          %td
+            - if (last_used = @most_recent_changes[abstract_model.pretty_name])
+              = time_ago_in_words last_used
+              = t "admin.dashboard.ago"
+          %td
+            - count = @count[abstract_model.pretty_name]
+            - percent = count > 0 ? (@max < 2.0 ? count : ((Math.log(count) * 100.0) / Math.log(@max))) : -1
+            .label.animate-width-to{:class => get_indicator(percent), :'data-animate-length' => ([1.0, percent].max.to_i * 20), :'data-animate-width-to' => "#{[2.0, percent].max.to_i}%", :style => "width:2%"}= @count[abstract_model.pretty_name]
+          %td
+            - if authorized? :new, abstract_model
+              = link_to t("admin.dashboard.add_new"), new_path(:model_name => abstract_model.to_param)
+            - if authorized? :see_history, abstract_model
+              - history_path = history_model_path(:model_name => abstract_model.to_param)
+              = link_to t("admin.history.name"), history_path
 - if authorized? :see_history
   #block-tables.block
     .content
@@ -46,9 +36,9 @@
         #timeline
         #listingHistory
           = render(:partial => 'history', :locals => {:month => Time.now.month, :year => Time.now.year, :history => @history})
-        - head_javascript do
+        = javascript_tag do
           :plain
-            $j(document).ready(function($) {
+            jQuery(function($) {
               var cache = {};
               $("#timeline").timeline({
                 url: "#{ history_slider_path }",
@@ -56,7 +46,7 @@
                   if (cache[year] && cache[year][month]) {
                     $("#listingHistory").html(cache[year][month]);
                   } else {
-                    $j("#listingHistory").load(
+                    $("#listingHistory").load(
                       "#{ history_list_path }",
                       { month: month, year: year },
                       function(response, status, xhr) {

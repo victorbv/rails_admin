@@ -25,7 +25,7 @@ it:
       no_file_found: "Nessun file trovato"
     credentials:
       log_out: "Scollegati"
-    list:
+    index:
       edit_action: "Modifica"
       delete_action: "Elimina"
       select_action: "Seleziona"
@@ -93,12 +93,12 @@ it:
       exported: "esportato"
     breadcrumbs:
       delete: "elimina"
-      history: "cronologia"
+      for_object: "cronologia"
       show: "mostra"
       edit: "modifica"
       export: "esporta"
       bulk_destroy: "elimina"
       new: "nuovo"
-      model_history: "cronologia"
-      list: "elenco"
+      for_model: "cronologia"
+      index: "elenco"
       dashboard: "riepilogo"

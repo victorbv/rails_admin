@@ -18,7 +18,7 @@ uk:
       no_activity: "Пусто"
     credentials:
       log_out: "Вийти"
-    list:
+    index:
       edit_action: "Редагувати"
       delete_action: "Видалити"
       add_new: "Створити"
@@ -85,11 +85,11 @@ uk:
       exported: "exported"
     breadcrumbs:
       delete: "delete"
-      history: "history"
+      for_object: "history"
       edit: "edit"
       export: "export"
       bulk_destroy: "delete"
       new: "new"
-      model_history: "history"
-      list: "list"
+      for_model: "history"
+      index: "list"
       dashboard: "dashboard"

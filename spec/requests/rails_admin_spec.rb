@@ -36,7 +36,7 @@ describe "RailsAdmin" do
     end
 
     it "should load javascript files in body" do
-      should have_selector('body script[src^="/assets/rails_admin/rails_admin.js"]')
+      should have_selector('head script[src^="/assets/rails_admin/rails_admin.js"]')
     end
   end
 
@@ -47,7 +47,7 @@ describe "RailsAdmin" do
     end
 
     it "should work like belongs to associations in the list view" do
-      visit list_path(:model_name => "comment", :set => "1")
+      visit index_path(:model_name => "comment", :set => "1")
 
       should have_content(@team.name)
     end

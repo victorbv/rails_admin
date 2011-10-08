@@ -21,7 +21,7 @@ tr:
       no_activity: "Aktivite yok"
     credentials:
       log_out: "Çıkış yap"
-    list:
+    index:
       edit_action: "Düzenle"
       delete_action: "Sil"
       select_action: "Select"
@@ -88,11 +88,11 @@ tr:
       exported: "exported"
     breadcrumbs:
       delete: "delete"
-      history: "history"
+      for_object: "history"
       edit: "edit"
       export: "export"
       bulk_destroy: "delete"
       new: "new"
-      model_history: "history"
-      list: "list"
+      for_model: "history"
+      index: "list"
       dashboard: "dashboard"

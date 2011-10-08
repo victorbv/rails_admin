@@ -49,7 +49,7 @@ module RailsAdmin
         # Reader for a collection of association's child models in an array of
         # [label, id] arrays.
         def associated_collection(authorization_adapter)
-          scope = authorization_adapter && authorization_adapter.query(:list, associated_model_config.abstract_model)
+          scope = authorization_adapter && authorization_adapter.query(:index, associated_model_config.abstract_model)
           associated_model_config.abstract_model.all({}, scope).map do |object|
             [object.send(associated_model_config.object_label_method), object.id]
           end
@@ -83,11 +83,6 @@ module RailsAdmin
         # Reader for validation errors of the bound object
         def errors
           bindings[:object].errors[child_key]
-        end
-
-        # Reader whether the bound object has validation errors
-        def has_errors?
-          errors.present?
         end
 
         # Reader whether this is a polymorphic association

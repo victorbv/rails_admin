@@ -23,7 +23,7 @@ nl:
       no_activity: "Geen activiteit"
     credentials:
       log_out: "Uitloggen"
-    list:
+    index:
       edit_action: "Aanpassen"
       delete_action: "Verwijderen"
       select_action: "Selecteren"
@@ -68,13 +68,13 @@ nl:
       deleted: "verwijderd"
     breadcrumbs:
       delete: "delete"
-      history: "history"
+      for_object: "history"
       edit: "edit"
       export: "export"
       bulk_destroy: "delete"
       new: "new"
-      model_history: "history"
-      list: "list"
+      for_model: "history"
+      index: "list"
       dashboard: "dashboard"
   datetime:
     distance_in_words:

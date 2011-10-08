@@ -5,7 +5,10 @@ Gem::Specification.new do |gem|
   # If you add a dependency, please maintain alphabetical order
   gem.add_dependency 'builder', '~> 3.0.0'
   gem.add_dependency 'haml', ['>= 3.1.0', '< 3.3.0']
-  gem.add_dependency 'rails', '~> 3.1.0'
+  gem.add_dependency 'rails', '~> 3.1.1'
+  gem.add_dependency 'coffee-rails'
+  gem.add_dependency 'bootstrap-sass'
+  gem.add_dependency 'jquery-rails'
   gem.add_development_dependency 'capybara', '~> 1.0'
   gem.add_development_dependency 'launchy', '~> 2.0'
   gem.add_development_dependency 'devise', '~> 1.4'
@@ -14,7 +17,7 @@ Gem::Specification.new do |gem|
   gem.add_development_dependency 'paperclip', '~> 2.3'
   gem.add_development_dependency 'rspec-rails', '~> 2.6'
   gem.add_development_dependency 'simplecov', '~> 0.4'
-  gem.authors = ["Erik Michaels-Ober", "Bogdan Gaza", "Petteri Kaapa"]
+  gem.authors = ["Erik Michaels-Ober", "Bogdan Gaza", "Petteri Kaapa", "Benoit Benezech"]
   gem.description = %q{RailsAdmin is a Rails engine that provides an easy-to-use interface for managing your data.}
   gem.email = ['sferik@gmail.com', 'bogdan@cadmio.org', 'petteri.kaapa@gmail.com']
   gem.files = Dir['Gemfile', 'LICENSE.md', 'README.md', 'Rakefile', 'app/**/*', 'config/**/*', 'lib/**/*', 'public/**/*']

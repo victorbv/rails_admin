@@ -26,7 +26,7 @@ pl:
       no_file_found: "Nie znaleziono pliku"
     credentials:
       log_out: "Wyloguj się"
-    list:
+    index:
       edit_action: "Edytuj"
       delete_action: "Usuń"
       select_action: "Select"
@@ -95,12 +95,12 @@ pl:
     breadcrumbs:
       show: "pokaż"
       delete: "usuń"
-      history: "historia"
+      for_object: "historia"
       edit: "edytuj"
       export: "eksportuj"
       bulk_destroy: "usuń"
       new: "nowy"
-      model_history: "historia"
-      list: "lista"
+      for_model: "historia"
+      index: "lista"
       dashboard: "tablica"
       

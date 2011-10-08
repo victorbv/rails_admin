@@ -25,7 +25,7 @@ ru:
       no_file_found: "Файл не найден"
     credentials:
       log_out: "Выйти"
-    list:
+    index:
       edit_action: "Редактировать"
       delete_action: "Удалить"
       select_action: "Выбрать"
@@ -93,12 +93,12 @@ ru:
       exported: "экспортировано"
     breadcrumbs:
       delete: "удаление"
-      history: "история"
+      for_object: "история"
       show: "просмотр"
       edit: "редактирование"
       export: "экспорт"
       bulk_destroy: "удаление"
       new: "создание"
-      model_history: "история"
-      list: "список"
+      for_model: "история"
+      index: "список"
       dashboard: "панель"
