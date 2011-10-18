@@ -4,6 +4,11 @@
 pt-PT:
   home:
     name: "home"
+  views:
+    pagination:
+      previous: "&laquo; Prev"
+      next: "Next &raquo;"
+      truncate: "…"
   admin:
     dashboard:
       pagename: "Administração do site"
@@ -25,7 +30,7 @@ pt-PT:
       no_file_found: "Ficheiro não encontrado"
     credentials:
       log_out: "Terminar sessão"
-    list:
+    index:
       edit_action: "Editar"
       delete_action: "Remover"
       select_action: "Select"
@@ -93,12 +98,12 @@ pt-PT:
       exported: "exported"
     breadcrumbs:
       delete: "deletar"
-      history: "história"
+      for_object: "história"
       show: "mostrar"
       edit: "editar"
       export: "exportar"
       bulk_destroy: "deletar"
       new: "novo"
-      model_history: "história"
-      list: "listar"
+      for_model: "história"
+      index: "listar"
       dashboard: "administração"

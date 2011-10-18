@@ -12,7 +12,7 @@ by [Bogdan Gaza](https://github.com/hurrycane) with mentors [Erik Michaels-Ober]
 [Yehuda Katz](https://github.com/wycats),
 [Luke van der Hoeven](https://github.com/plukevdh), and [Rein Henrichs](https://github.com/reinh).
 
-It currently offers the following features:
+## Features
 
 * Display database tables
 * Create new data
@@ -24,16 +24,35 @@ It currently offers the following features:
 * Authentication (via [Devise](https://github.com/plataformatec/devise))
 * User action history
 
-See the demo here: http://demo.railsadmin.org/
+See the demo here:
+http://rails-admin-tb.herokuapp.com
+username: `username@example.com`
+password: `password`
 
-For the Twitter boostrap branch, see here: http://rails-admin-tb.herokuapp.com/
-More information there: https://github.com/bbenezech/rails_admin/tree/bootstrap
 
-Supported ORMs:
+The older Activo UI is still available on a (non-maintained) activo branch
+
+https://github.com/sferik/rails_admin/tree/activo
+
+### Supported ORMs:
 
 * ActiveRecord
 
+## <a name="support">Support</a>
+If you have a question, you can ask the [official RailsAdmin mailing
+list](http://groups.google.com/group/rails_admin) or ping sferik on IRC in
+[#railsadmin on
+irc.freenode.net](http://webchat.freenode.net/?channels=railsadmin).
+
+If you think you found a bug in RailsAdmin, you can [submit an
+issue](https://github.com/sferik/rails_admin#issues).
+
 ## <a name="notices">Notices</a>
+
+The new UI is there. A few refactorings included as well. Feedback welcome here: #722
+Transition should be smooth for those who didn't customize RA internals too much. For the others, you can stick on to activo branch for the moment.
+
+We're moving toward a form_builder, all form partials should be considered deprecated at some point (don't override them in your app). You can't define form_builders anymore in your apps, feel free to add to methods to it through monkey-patching if you need.
 
 `ActiveRecord#rails_admin` is no more :(
 Please move all remaining code from your models to rails_admin initializer, it won't be evaluated.
@@ -74,6 +93,8 @@ Instead of:
 
 Please refer to issue http://github.com/sferik/rails_admin/issues/289
 
+### Asset pipeline and CKEditor
+
 The master branch currently targets Rails 3.1.
 
 If you are updating from a Rails 3.0 application, you will no longer need to
@@ -87,11 +108,35 @@ and to add this to your config/routes:
 
     mount RailsAdmin::Engine => '/admin', :as => 'rails_admin'
 
+NB If you need to use CKEditor for rich text editing, please note that
+Sprockets 2.0.1 and Sprockets 2.0.2 are unable to serve assets from
+`public/javascripts` (You'll get a `Sprockets::FileOutsidePaths` error).  To continue to
+use CKEditor, add
+
+    gem 'sprockets', '= 2.0.0.'
+
+to your Gemfile for now
+([this patch](https://github.com/rails/rails/commit/fd8f0b297822ba36002084faa36bd0320d3be4a7)
+will fix things longer-term).
+
+Please note that `initializer/rails_admin.rb` is very likely to require access to your DB.
+Thus if don't need access to your application at asset compilation time, 
+
+    config.assets.initialize_on_precompile = false
+
+will reduce your compilation time.
+Note that this will be needed (setting it to false) on **Heroku** if you set `compile = false` and don't versionate `public/assets`.
+More here: http://devcenter.heroku.com/articles/rails31_heroku_cedar
+
+### Rails 3.0 support
+
 You may continue to use RailsAdmin with Rails 3.0 by specifying the rails-3.0
 branch in your `Gemfile`, however, this branch is no longer being actively
 maintained by the RailsAdmin Core Team.
 
     gem 'rails_admin', :git => 'git://github.com/sferik/rails_admin.git', :branch => 'rails-3.0'
+
+### Other deprecations
 
 :truncated? has been removed, use pretty_value instead to fine-tune the output of your field in show and list views.
 
@@ -162,19 +207,12 @@ action-specific methods (`edit_partial`, `create_partial` and
 `update_partial`). See the section titled **Fields - Rendering** above for more
 details.
 
-## <a name="support">Support</a>
-If you have a question, you can ask the [official RailsAdmin mailing
-list](http://groups.google.com/group/rails_admin) or ping sferik on IRC in
-[#railsadmin on
-irc.freenode.net](http://webchat.freenode.net/?channels=railsadmin).
-
-If you think you found a bug in RailsAdmin, you can [submit an
-issue](https://github.com/sferik/rails_admin#issues).
 
 ## <a name="screenshots">Screenshots</a>
 ![Dashboard view](https://github.com/sferik/rails_admin/raw/master/screenshots/dashboard.png "Dashboard view")
 ![List view](https://github.com/sferik/rails_admin/raw/master/screenshots/list.png "List view")
 ![Edit view](https://github.com/sferik/rails_admin/raw/master/screenshots/edit.png "Edit view")
+![Export view](https://github.com/sferik/rails_admin/raw/master/screenshots/export.png "Edit view")
 
 ## <a name="installation">Installation</a>
 In your `Gemfile`, add the following dependencies:
@@ -803,34 +841,8 @@ column, you can:
 
 **Form rendering**
 
-RailsAdmin renders these views with Rails' form builder (form_for). If you want to use a different
-form builder then provide an override for the edit view or independingly for the
-create and update views. The argument is a symbol or string that is sent to the view
-to process the form. This is handy for integrating things like the nested form builder (https://github.com/ryanb/nested_form) if you need to override a field's edit template.
-
-    RailsAdmin.config do |config|
-      config.model Team do
-        edit do
-          form_builder :nested_form_for
-          field :name
-        end
-      end
-    end
-
-or independently
-
-    RailsAdmin.config do |config|
-      config.model Team do
-        create do
-          form_builder :create_form_for
-          field :name
-        end
-        update do
-          form_builder :update_form_for
-          field :name
-        end
-      end
-    end
+RailsAdmin renders these views with is own form builder: `RailsAdmin::FormBuilder`
+You can inherit from it to customize form output.
 
 **Field groupings**
 
@@ -1027,7 +1039,7 @@ In `app/views/rails_admin/main/_yes_no.html.erb`
 
       <%= %Q(No #{image_tag "no.png", :alt => "No"}).html_safe %>
 
-      <% if field.has_errors? %>
+      <% if field.errors.present? %>
         <span class="errorMessage"><%= "#{field.label } #{field.errors.first}" %></span>
       <% end %>
       <p class="help"><%= field.help %></p>

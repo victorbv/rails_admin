@@ -35,9 +35,8 @@
           return { label: $(this).text(), value: this.value };
         }).toArray();
       }
-
+      var input_append = $("<div class='input-append'></div>")
       var input = this.input = $("<input>")
-        .insertAfter(select)
         .val(value)
         .addClass("ra-filtering-select-input")
         .attr('style', select.attr('style'))
@@ -73,7 +72,6 @@
             }
           }
         })
-        .addClass("ui-widget ui-widget-content ui-corner-left");
 
       input.data("autocomplete")._renderItem = function(ul, item) {
         return $("<li></li>")
@@ -81,20 +79,9 @@
           .append("<a>" + item.label || item.id + "</a>")
           .appendTo(ul);
       };
-
-      this.button = $("<button type='button'>&nbsp;</button>")
-        .attr("tabIndex", -1)
-        .attr("title", "Show All Items")
-        .insertAfter(input)
-        .button({
-          icons: {
-            primary: "ui-icon-triangle-1-s"
-          },
-          text: false
-        })
-
-        .removeClass("ui-corner-all")
-        .addClass("ra-filtering-select-button ui-corner-right")
+      
+      // replace with dropdown button once ready in twitter-bootstrap
+      var button = this.button = $('<label class="add-on ui-button ui-widget ui-state-default ui-corner-all ui-button-icon-only" title="Show All Items" role="button"><span class="ui-button-icon-primary ui-icon ui-icon-triangle-1-s"></span><span class="ui-button-text">&nbsp;</span></label>')
         .click(function() {
           // close if already visible
           if (input.autocomplete("widget").is(":visible")) {
@@ -106,6 +93,10 @@
           input.autocomplete("search", "");
           input.focus();
         });
+      
+      input_append.append(input).append(button).insertAfter(select);
+      
+        
     },
 
     _getResultSet: function(request, data, xhr) {

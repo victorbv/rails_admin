@@ -3,10 +3,10 @@ require 'spec_helper'
 describe "RailsAdmin Config DSL Edit Section" do
 
   subject { page }
-  
+
   describe "attr_accessible" do
-    
-    
+
+
     it "should be configurable in the controller scope" do
 
       RailsAdmin.config do |config|
@@ -14,7 +14,7 @@ describe "RailsAdmin Config DSL Edit Section" do
         config.attr_accessible_role do
           _current_user.attr_accessible_role # sould be :custom_role
         end
-        
+
         config.model FieldTest do
           edit do
             field :string_field
@@ -101,7 +101,7 @@ describe "RailsAdmin Config DSL Edit Section" do
           end
         end
         visit new_path(:model_name => "team")
-        should have_selector('div.help', :text => "help paragraph to display")
+        should have_selector('legend small', :text => "help paragraph to display")
       end
 
       it "should not show help if not present" do
@@ -113,7 +113,7 @@ describe "RailsAdmin Config DSL Edit Section" do
           end
         end
         visit new_path(:model_name => "team")
-        should_not have_selector('div.help')
+        should_not have_selector('legend small')
       end
 
       it "should be able to display multiple help if there are multiple sections" do
@@ -131,9 +131,9 @@ describe "RailsAdmin Config DSL Edit Section" do
           end
         end
         visit new_path(:model_name => "team")
-        should have_selector("div.help", :text => 'help for default')
-        should have_selector("div.help", :text => 'help for other section')
-        should have_selector("div.help", :count => 2)
+        should have_selector("legend small", :text => 'help for default')
+        should have_selector("legend small", :text => 'help for other section')
+        should have_selector("legend small", :count => 2)
       end
     end
 
@@ -397,9 +397,9 @@ describe "RailsAdmin Config DSL Edit Section" do
         end
       end
       visit new_path(:model_name => "team")
-      find(".team_manager p.help").should have_content("Required. 100 characters or fewer. Additional help text for manager field.")
-      find(".team_division_id p.help").should have_content("Required")
-      find(".team_name p.help").should have_content("Optional. 50 characters or fewer.")
+      find("#team_manager_field .help-block").should have_content("Required. 100 characters or fewer. Additional help text for manager field.")
+      find("#team_division_id_field .help-block").should have_content("Required")
+      find("#team_name_field .help-block").should have_content("Optional. 50 characters or fewer.")
     end
 
     it "should have option to override required status" do
@@ -417,9 +417,9 @@ describe "RailsAdmin Config DSL Edit Section" do
         end
       end
       visit new_path(:model_name => "team")
-      find(".team_manager p.help").should have_content("Optional. 100 characters or fewer.")
-      find(".team_division_id p.help").should have_content("Optional")
-      find(".team_name p.help").should have_content("Required. 50 characters or fewer.")
+      find("#team_manager_field .help-block").should have_content("Optional. 100 characters or fewer.")
+      find("#team_division_id_field .help-block").should have_content("Optional")
+      find("#team_name_field .help-block").should have_content("Required. 50 characters or fewer.")
     end
   end
 
@@ -739,155 +739,6 @@ describe "RailsAdmin Config DSL Edit Section" do
       end
       visit new_path(:model_name => "team")
       should have_selector("input.color")
-    end
-  end
-
-  describe "Form builder configuration" do
-
-    it "should allow override of default" do
-      RailsAdmin.config do |config|
-        config.model Player do
-          edit do
-            field :name
-          end
-        end
-        config.model Team do
-          edit do
-            form_builder :form_for_edit
-            field :name
-          end
-        end
-        config.model Fan do
-          create do
-            form_builder :form_for_create
-            field :name
-          end
-          update do
-            form_builder :form_for_update
-            field :name
-          end
-        end
-        config.model League do
-          create do
-            form_builder :form_for_league_create
-            field :name
-          end
-          update do
-            field :name
-          end
-        end
-      end
-
-      RailsAdmin::Config.model(Player).create.form_builder.should be(:form_for)
-      RailsAdmin::Config.model(Player).update.form_builder.should be(:form_for)
-      RailsAdmin::Config.model(Player).edit.form_builder.should be(:form_for)
-
-      RailsAdmin::Config.model(Team).update.form_builder.should be(:form_for_edit)
-      RailsAdmin::Config.model(Team).create.form_builder.should be(:form_for_edit)
-      RailsAdmin::Config.model(Team).edit.form_builder.should be(:form_for_edit)
-
-      RailsAdmin::Config.model(Fan).create.form_builder.should be(:form_for_create)
-      RailsAdmin::Config.model(Fan).update.form_builder.should be(:form_for_update)
-      RailsAdmin::Config.model(Fan).edit.form_builder.should be(:form_for_update) # not sure we care
-
-      RailsAdmin::Config.model(League).create.form_builder.should be(:form_for_league_create)
-      RailsAdmin::Config.model(League).update.form_builder.should be(:form_for)
-      RailsAdmin::Config.model(League).edit.form_builder.should be(:form_for) # not sure we care
-
-      # don't spill over into other views
-      expect {
-        RailsAdmin::Config.model(Team).list.form_builder
-      }.to raise_error(NoMethodError,/undefined method/)
-    end
-
-    it "should be used in the new and edit views" do
-      TF_CREATE_OUTPUT = "MY TEST FORM CREATE TEXT FIELD"
-      TF_UPDATE_OUTPUT = "MY TEST FORM UPDATE TEXT FIELD"
-
-      module MyCreateForm
-        class Builder < ::ActionView::Helpers::FormBuilder
-          def text_field(*args)
-            TF_CREATE_OUTPUT
-          end
-        end
-
-        module ViewHelper
-          def create_form_for(*args, &block)
-            options = args.extract_options!.reverse_merge(:builder => MyCreateForm::Builder)
-            form_for(*(args << options), &block)
-          end
-        end
-      end
-
-      module MyUpdateForm
-        class Builder < ::ActionView::Helpers::FormBuilder
-          def text_field(*args)
-            TF_UPDATE_OUTPUT
-          end
-        end
-
-        module ViewHelper
-          def update_form_for(*args, &block)
-            options = args.extract_options!.reverse_merge(:builder => MyUpdateForm::Builder)
-            form_for(*(args << options), &block)
-          end
-        end
-      end
-
-      class ActionView::Base
-        include MyCreateForm::ViewHelper
-        include MyUpdateForm::ViewHelper
-      end
-
-      RailsAdmin.config do |config|
-        config.model Player do
-          edit do
-            field :name
-          end
-        end
-        config.model Team do
-          edit do
-            form_builder :create_form_for
-            field :name
-          end
-        end
-        config.model League do
-          create do
-            form_builder :create_form_for
-            field :name
-          end
-          update do
-            form_builder :update_form_for
-            field :name
-          end
-        end
-      end
-
-      visit new_path(:model_name => "player")
-      should have_selector("input#player_name")
-      should have_no_content(TF_CREATE_OUTPUT)
-      should have_no_content(TF_UPDATE_OUTPUT)
-      @player = FactoryGirl.create :player
-      visit edit_path(:model_name => "player", :id => @player.id)
-      should have_selector("input#player_name")
-      should have_no_content(TF_CREATE_OUTPUT)
-      should have_no_content(TF_UPDATE_OUTPUT)
-
-      visit new_path(:model_name => "team")
-      should have_content(TF_CREATE_OUTPUT)
-      should have_no_content(TF_UPDATE_OUTPUT)
-      @team = FactoryGirl.create :team
-      visit edit_path(:model_name => "team", :id => @team.id)
-      should have_content(TF_CREATE_OUTPUT)
-      should have_no_content(TF_UPDATE_OUTPUT)
-
-      visit new_path(:model_name => "league")
-      should have_content(TF_CREATE_OUTPUT)
-      should have_no_content(TF_UPDATE_OUTPUT)
-      @league = FactoryGirl.create :league
-      visit edit_path(:model_name => "league", :id => @league.id)
-      should have_no_content(TF_CREATE_OUTPUT)
-      should have_content(TF_UPDATE_OUTPUT)
     end
   end
 end

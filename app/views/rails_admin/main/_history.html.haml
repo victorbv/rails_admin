@@ -1,12 +1,12 @@
 %br
 %h4= "#{month_names[month - 1]} #{year} #{t("admin.history.name").downcase}"
-%table#history.table.grid
+%table.zebra-striped
   %thead
     %tr
-      %th.start User
-      %th Changes
+      %th.user= t("admin.history.user")
+      %th.changes= t("admin.history.changes")
   %tbody
     - history.each do |t|
-      %tr{:class => cycle('even', 'odd')}
-        %td.start= t.try :username
+      %tr
+        %td= t.try :username
         %td= history_output(t)

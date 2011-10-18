@@ -1,6 +1,11 @@
 lv:
   home:
     name: "sākums"
+  views:
+    pagination:
+      previous: "&laquo; Prev"
+      next: "Next &raquo;"
+      truncate: "…"
   admin:
     dashboard:
       pagename: "Saita administrēšana"
@@ -18,7 +23,7 @@ lv:
       no_activity: "Nav Aktivitātes"
     credentials:
       log_out: "Iziet"
-    list:
+    index:
       edit_action: "Labot"
       delete_action: "Dzēst"
       select_action: "Izvēlies"
@@ -85,11 +90,11 @@ lv:
       exported: "exported"
     breadcrumbs:
       delete: "delete"
-      history: "history"
+      for_object: "history"
       edit: "edit"
       export: "export"
       bulk_destroy: "delete"
       new: "new"
-      model_history: "history"
-      list: "list"
+      for_model: "history"
+      index: "list"
       dashboard: "dashboard"

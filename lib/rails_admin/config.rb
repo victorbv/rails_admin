@@ -5,7 +5,6 @@ require 'active_support/core_ext/class/attribute_accessors'
 
 module RailsAdmin
   module Config
-    class AuthenticationNotConfigured < StandardError; end
     # RailsAdmin is setup to try and authenticate with warden
     # If warden is found, then it will try to authenticate
     #
@@ -21,31 +20,17 @@ module RailsAdmin
     # @see RailsAdmin::Config.authenticate_with
     # @see RailsAdmin::Config.authorize_with
     DEFAULT_AUTHENTICATION = Proc.new do
-      warden = request.env['warden']
-      if warden
-        warden.authenticate!
-      else
-        if %w(production beta uat staging).include?(Rails.env)
-          raise AuthenticationNotConfigured, "See RailsAdmin::Config.authenticate_with or setup Devise / Warden"
-        end
-      end
+      request.env['warden'].try(:authenticate!)
     end
-    
+
     DEFAULT_ATTR_ACCESSIBLE_ROLE = Proc.new { :default }
 
     DEFAULT_AUTHORIZE = Proc.new {}
 
     DEFAULT_CURRENT_USER = Proc.new do
-      warden = request.env["warden"]
-      if warden
-        warden.user
-      elsif respond_to?(:current_user)
-        current_user
-      else
-        raise "See RailsAdmin::Config.current_user_method or setup Devise / Warden"
-      end
+      request.env["warden"].try(:user) || respond_to?(:current_user) && current_user
     end
-  
+
 
     class << self
       # Application title, can be an array of two elements
@@ -113,13 +98,13 @@ module RailsAdmin
         @authenticate = blk if blk
         @authenticate || DEFAULT_AUTHENTICATION
       end
-      
-      
+
+
       def attr_accessible_role(&blk)
         @attr_accessible_role = blk if blk
         @attr_accessible_role || DEFAULT_ATTR_ACCESSIBLE_ROLE
       end
-      
+
       # Setup authorization to be run as a before filter
       # This is run inside the controller instance so you can setup any authorization you need to.
       #
@@ -197,11 +182,11 @@ module RailsAdmin
           raise ArgumentError, "Search operator '#{operator}' not supported"
         end
       end
-      
+
       def reload_between_requests=(thingy)
         ActiveSupport::Deprecation.warn("'#{self.name}.reload_between_requests=' is not in use any longer, please remove it from initialization files", caller)
       end
-      
+
       # Shortcut to access the list section's class configuration
       # within a config DSL block
       #

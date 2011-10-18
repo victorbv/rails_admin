@@ -3,6 +3,11 @@
 bg:
   home:
     name: "начало"
+  views:
+    pagination:
+      previous: "&laquo; Prev"
+      next: "Next &raquo;"
+      truncate: "…"
   admin:
     dashboard:
       pagename: "Администрация"
@@ -20,7 +25,7 @@ bg:
       no_activity: "Липса на активност"
     credentials:
       log_out: "Изход"
-    list:
+    index:
       edit_action: "Редактирай"
       delete_action: "Изтрий"
       select_action: "Избери"
@@ -88,12 +93,12 @@ bg:
       exported: "изнасяне"
     breadcrumbs:
       delete: "заличи"
-      history: "история"
+      for_object: "история"
       show: "покажи"
       edit: "редактирай"
       export: "изнеси"
       bulk_destroy: "заличи"
       new: "нов"
-      model_history: "история"
-      list: "списък"
+      for_model: "история"
+      index: "списък"
       dashboard: "табло"

@@ -2,6 +2,11 @@
 fi:
   home:
     name: "koti"
+  views:
+    pagination:
+      previous: "&laquo; Prev"
+      next: "Next &raquo;"
+      truncate: "…"
   admin:
     dashboard:
       pagename: "Ylläpito"
@@ -23,7 +28,7 @@ fi:
       no_file_found: "Tiedostoa ei löytynyt"
     credentials:
       log_out: "Kirjaudu ulos"
-    list:
+    index:
       edit_action: "Muokkaa"
       delete_action: "Poista"
       select_action: "Valitse"
@@ -91,12 +96,12 @@ fi:
       exported: "viety"
     breadcrumbs:
       delete: "poista"
-      history: "historia"
+      for_object: "historia"
       show: "näytä"
       edit: "muokkaa"
       export: "vie"
       bulk_destroy: "poista"
       new: "luo uusi"
-      model_history: "historia"
-      list: "listaa"
+      for_model: "historia"
+      index: "listaa"
       dashboard: "hallintapaneeli"

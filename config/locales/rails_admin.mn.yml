@@ -4,6 +4,11 @@
 mn:
   home:
     name: "нүүр"
+  views:
+    pagination:
+      previous: "&laquo; Prev"
+      next: "Next &raquo;"
+      truncate: "…"
   admin:
     dashboard:
       pagename: "Сайтын удирдлага"
@@ -21,7 +26,7 @@ mn:
       no_activity: "No Activity"
     credentials:
       log_out: "Гарах"
-    list:
+    index:
       edit_action: "Засах"
       delete_action: "Устгах"
       select_action: "Сонгох"
@@ -88,11 +93,11 @@ mn:
       exported: "exported"
     breadcrumbs:
       delete: "delete"
-      history: "history"
+      for_object: "history"
       edit: "edit"
       export: "export"
       bulk_destroy: "delete"
       new: "new"
-      model_history: "history"
-      list: "list"
+      for_model: "history"
+      index: "list"
       dashboard: "dashboard"

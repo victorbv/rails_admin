@@ -13,22 +13,14 @@ module RailsAdmin
           register_instance_option(:formatted_value) do
             bindings[:view].image_tag("rails_admin/#{value ? 'bullet_black' : 'bullet_white'}.png", :alt => value.to_s)
           end
-          
+
           register_instance_option(:export_value) do
             value.to_s
           end
-            
+
           # Accessor for field's help text displayed below input field.
           register_instance_option(:help) do
             ""
-          end
-
-          register_instance_option(:html_attributes) do
-            {
-              :class => "#{css_class} #{has_errors? ? "errorField" : nil}",
-              :checked => (value && value.to_s != "0"),
-              :style => "width:#{column_width}px",
-            }
           end
         end
       end

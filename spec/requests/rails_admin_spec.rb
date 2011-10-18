@@ -13,7 +13,7 @@ describe "RailsAdmin" do
       visit dashboard_path
     end
   end
-  
+
   # A common mistake for translators is to forget to change the YAML file's
   # root key from en to their own locale (as people tend to use the English
   # file as template for a new translation).
@@ -36,7 +36,7 @@ describe "RailsAdmin" do
     end
 
     it "should load javascript files in body" do
-      should have_selector('body script[src^="/assets/rails_admin/rails_admin.js"]')
+      should have_selector('head script[src^="/assets/rails_admin/rails_admin.js"]')
     end
   end
 
@@ -47,7 +47,7 @@ describe "RailsAdmin" do
     end
 
     it "should work like belongs to associations in the list view" do
-      visit list_path(:model_name => "comment", :set => "1")
+      visit index_path(:model_name => "comment", :set => "1")
 
       should have_content(@team.name)
     end

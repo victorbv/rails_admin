@@ -4,6 +4,11 @@
 de:
   home:
     name: "Home"
+  views:
+    pagination:
+      previous: "&laquo; Prev"
+      next: "Next &raquo;"
+      truncate: "…"
   admin:
     dashboard:
       pagename: "Administration"
@@ -25,7 +30,7 @@ de:
       no_file_found: "Keine Datei gefunden"
     credentials:
       log_out: "abmelden"
-    list:
+    index:
       show_action: "Anzeigen"
       edit_action: "Bearbeiten"
       delete_action: "Löschen"
@@ -94,12 +99,12 @@ de:
       exported: "exportiert"
     breadcrumbs:
       delete: "löschen"
-      history: "historie"
+      for_object: "historie"
       show: "anzeigen"
       edit: "bearbeiten"
       export: "exportieren"
       bulk_destroy: "löschen"
       new: "neu"
-      model_history: "Historie"
-      list: "Liste"
+      for_model: "Historie"
+      index: "Liste"
       dashboard: "Übersicht"

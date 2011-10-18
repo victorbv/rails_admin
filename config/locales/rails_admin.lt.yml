@@ -3,6 +3,11 @@
 lt:
   home:
     name: "Pradžia"
+  views:
+    pagination:
+      previous: "&laquo; Prev"
+      next: "Next &raquo;"
+      truncate: "…"
   admin:
     dashboard:
       pagename: "Nustatymai"
@@ -20,7 +25,7 @@ lt:
       no_activity: "Be pasikeitimų"
     credentials:
       log_out: "Atsijungti"
-    list:
+    index:
       edit_action: "Tvarkyti"
       delete_action: "Pašalinti"
       select_action: "Pasirinkti"
@@ -87,11 +92,11 @@ lt:
       exported: "išeksportuotieji"
     breadcrumbs:
       delete: "pašalinti"
-      history: "istorija"
+      for_object: "istorija"
       edit: "taisyti"
       export: "eksportuoti"
       bulk_destroy: "ištrinti visus"
       new: "naujas"
-      model_history: "istorija"
-      list: "sąrašas"
+      for_model: "istorija"
+      index: "sąrašas"
       dashboard: "nustatymai"

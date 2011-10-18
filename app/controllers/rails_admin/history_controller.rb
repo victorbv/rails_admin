@@ -27,24 +27,22 @@ module RailsAdmin
     def for_model
       @authorization_adapter.authorize(:see_history) if @authorization_adapter
       @page_type = @abstract_model.pretty_name.downcase
-      @page_name = t("admin.history.page_name", :name => @model_config.label)
+      @page_name = t("admin.history.page_name", :name => @model_config.label.downcase)
       @general = true
-      @current_page = params[:page].try(:to_i) || 1
+      @history = AbstractHistory.history_for_model @abstract_model, params[:query], params[:sort], params[:sort_reverse], params[:all], params[:page]
 
-      @page_count, @history = AbstractHistory.history_for_model @abstract_model, params[:query], params[:sort], params[:sort_reverse], params[:all], params[:page]
-
-      render "show", :layout => request.xhr? ? false : 'rails_admin/main'
+      render "show", :layout => request.xhr? ? false : 'rails_admin/application'
     end
 
     def for_object
       @authorization_adapter.authorize(:see_history) if @authorization_adapter
       @page_type = @abstract_model.pretty_name.downcase
-      @page_name = t("admin.history.page_name", :name => @model_config.with(:object => @object).object_label)
+      @page_name = t("admin.history.page_name", :name => "#{@model_config.label.downcase} '#{@model_config.with(:object => @object).object_label}'")
       @general = false
 
       @history = AbstractHistory.history_for_object @abstract_model, @object, params[:query], params[:sort], params[:sort_reverse]
 
-      render "show", :layout => request.xhr? ? false : 'rails_admin/main'
+      render "show", :layout => request.xhr? ? false : 'rails_admin/application'
     end
 
   end

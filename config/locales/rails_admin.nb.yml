@@ -5,6 +5,11 @@
 nb:
   home:
     name: "hjem"
+  views:
+    pagination:
+      previous: "&laquo; Prev"
+      next: "Next &raquo;"
+      truncate: "…"
   admin:
     dashboard:
       pagename: "Sideadministrasjon"
@@ -27,7 +32,7 @@ nb:
       no_file_found: "Fil ikke funnet"
     credentials:
       log_out: "Logg ut"
-    list:
+    index:
       edit_action: "Rediger"
       delete_action: "Slett"
       select_action: "Velg"
@@ -94,12 +99,12 @@ nb:
       exported: "eksportert"
     breadcrumbs:
       delete: "slette"
-      history: "historikk"
+      for_object: "historikk"
       show: "vise"
       edit: "redigere"
       export: "eksportere"
       bulk_destroy: "slette"
       new: "ny"
-      model_history: "historikk"
-      list: "liste"
+      for_model: "historikk"
+      index: "liste"
       dashboard: "dashboard"

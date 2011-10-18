@@ -1,6 +1,11 @@
 es:
   home:
     name: "inicio"
+  views:
+    pagination:
+      previous: "&laquo; Prev"
+      next: "Next &raquo;"
+      truncate: "…"
   admin:
     dashboard:
       pagename: "Administración del sitio"
@@ -22,7 +27,7 @@ es:
       no_file_found: "Archivo no encontrado"
     credentials:
       log_out: "Cerrar sesión"
-    list:
+    index:
       edit_action: "Editar"
       delete_action: "Eliminar"
       select_action: "Seleccionar"
@@ -90,12 +95,12 @@ es:
       exported: "exportado"
     breadcrumbs:
       delete: "borrar"
-      history: "historial"
+      for_object: "historial"
       edit: "editar"
       export: "exportar"
       show: "mostrar"
       bulk_destroy: "borrar"
       new: "nuevo"
-      model_history: "historial"
-      list: "lista"
+      for_model: "historial"
+      index: "lista"
       dashboard: "panel general"

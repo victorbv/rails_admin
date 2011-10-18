@@ -4,6 +4,11 @@
 sv:
   home:
     name: "hem"
+  views:
+    pagination:
+      previous: "&laquo; Prev"
+      next: "Next &raquo;"
+      truncate: "…"
   admin:
     dashboard:
       pagename: "Administration"
@@ -21,7 +26,7 @@ sv:
       no_activity: "Ingen aktivitet"
     credentials:
       log_out: "Logga ut"
-    list:
+    index:
       edit_action: "Redigera"
       delete_action: "Ta bort"
       select_action: "Marker"
@@ -88,11 +93,11 @@ sv:
       exported: "exported"
     breadcrumbs:
       delete: "delete"
-      history: "history"
+      for_object: "history"
       edit: "edit"
       export: "export"
       bulk_destroy: "delete"
       new: "new"
-      model_history: "history"
-      list: "list"
+      for_model: "history"
+      index: "list"
       dashboard: "dashboard"
