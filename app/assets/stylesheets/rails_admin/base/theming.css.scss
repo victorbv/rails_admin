@@ -3,6 +3,14 @@
   Keep it clean, people
 */
 
+/* Application name */
+.topbar h3 {
+  small {
+    color:red;
+    font-weight:bold;
+  }
+}
+
 /* We want input size to be used, unfixate input width */
 input, textarea {
   width:auto;
@@ -41,9 +49,13 @@ input, textarea {
   }
 }
 
+.help-block {
+  clear:left;
+}
+
 /* Table cells behaviour TODO: homogeinize classes a bit */
 table.zebra-striped {
-  /* All */
+  /* text-overflow when cell content > 150px */
   td {
     white-space: nowrap;
     overflow: hidden;
@@ -51,35 +63,32 @@ table.zebra-striped {
     max-width:150px;
   }
 
-  /* List */
-  th.other {
-    width:13px;
-  }
-  th.first {
-    width:18px;
-  }
-  th.last {
-    width:60px;
-  }
-
-  /* Dashboard */
-  th.model-name {
-    width:100px;
-  }
-  th.last-used {
-    width:100px;
-  }
-  th.records {
-  }
-  th.controls {
-    width:100px;
+  td.links {
+    max-width: none;
+    .inline {
+      margin:0px;
+      li {
+        display:inline-block;
+        a {
+          border-right: 1px solid #DDD;
+          padding-right: 5px;
+        }
+        &:last-child {
+          a {
+            border-right: none;
+          }
+        }
+      }
+    }
   }
 
-  /* Dashboard => history */
-  th.user {
-    width:100px;
+  /* Shrink to content width */
+  .shrink {
+    width:1px;
+    white-space:nowrap;
   }
 
+  /* Can't apply width:1px on sortable headers => don't play nice with sorting arrows on firefox. same for white-space:nowrap.. */
   /* History */
   th.created_at {
     width:160px;

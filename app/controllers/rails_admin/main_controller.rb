@@ -11,7 +11,6 @@ module RailsAdmin
     before_filter :check_for_cancel, :only => [:create, :update, :destroy, :export, :bulk_destroy]
 
     def dashboard
-      @authorization_adapter.authorize(:dashboard) if @authorization_adapter
       @page_name = t("admin.dashboard.pagename")
       @page_type = "dashboard"
 
@@ -245,7 +244,7 @@ module RailsAdmin
       @authorization_adapter.authorize(:bulk_destroy, @abstract_model) if @authorization_adapter
 
       scope = @authorization_adapter && @authorization_adapter.query(params[:action].to_sym, @abstract_model)
-
+      
       processed_objects = @abstract_model.destroy(params[:bulk_ids], scope)
 
       destroyed = processed_objects.select(&:destroyed?)
@@ -272,7 +271,6 @@ module RailsAdmin
     def get_bulk_objects(ids)
       scope = @authorization_adapter && @authorization_adapter.query(params[:action].to_sym, @abstract_model)
       objects = @abstract_model.get_bulk(ids, scope)
-
       not_found unless objects
       objects
     end
@@ -346,8 +344,8 @@ module RailsAdmin
             statement, value1, value2 = build_statement(field_infos[:column], field_infos[:type], query, field.search_operator)
             if statement
               query_statements << statement
-              values << value1 if value1
-              values << value2 if value2
+              values << value1 unless value1.nil?
+              values << value2 unless value2.nil?
             end
           end
         end
@@ -368,8 +366,8 @@ module RailsAdmin
                 statement, value1, value2 = build_statement(field_infos[:column], field_infos[:type], filter_dump[:value], (filter_dump[:operator] || 'default'))
                 if statement
                   field_statements << statement
-                  values << value1 if value1
-                  values << value2 if value2
+                  values << value1 unless value1.nil?
+                  values << value2 unless value2.nil?
                 end
               end
             end
@@ -410,8 +408,8 @@ module RailsAdmin
       # now we go type specific
       case type
       when :boolean
-        return if value.blank?
-        ["(#{column} = ?)", ['true', 't', '1'].include?(value)] if ['true', 'false', 't', 'f', '1', '0'].include?(value)
+        return ["(#{column} IS NULL OR #{column} = ?)", false] if ['false', 'f', '0'].include?(value)
+        return ["(#{column} = ?)", true] if ['true', 't', '1'].include?(value)
       when :integer, :belongs_to_association
         return if value.blank?
         ["(#{column} = ?)", value.to_i] if value.to_i.to_s == value
