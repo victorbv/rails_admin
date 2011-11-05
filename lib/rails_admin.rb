@@ -1,6 +1,5 @@
 require 'rails_admin/engine'
 require 'rails_admin/abstract_model'
-require 'rails_admin/abstract_history'
 require 'rails_admin/config'
 require 'rails_admin/extension'
 require 'rails_admin/extensions/cancan'
@@ -44,7 +43,7 @@ module RailsAdmin
   def self.config(entity = nil, &block)
     if entity
       RailsAdmin::Config.model(entity, &block)
-    elsif block_given?
+    elsif block_given? && ENV['SKIP_RAILS_ADMIN_INITIALIZER'] != "true"
       block.call(RailsAdmin::Config)
     else
       RailsAdmin::Config

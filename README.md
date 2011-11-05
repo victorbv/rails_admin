@@ -268,6 +268,12 @@ The configuration code should be placed in an initializer file, for example:
       end
     end
 
+The configuration will be executed at startup time, once. (dev & production)
+Rake tasks that load environment don't execute RailsAdmin initializer's block, for performance and DB status compatibility.
+If you have in an edge case where you need RailsAdmin up&running, you can force it anyway:
+
+    rake mytask SKIP_RAILS_ADMIN_INITIALIZER=false
+
 ### General
 
 Set the application name:
@@ -417,13 +423,15 @@ you want to get the Team model's visibility, you use
 `RailsAdmin.config(Team).visible?`.
 
 **Create a navigation_label in navigation**
+    
+    # Given there are the following models: League, Team and Division
 
     RailsAdmin.config do |config|
       config.model Team do
         parent League
       end
 
-      config.model Team do
+      config.model Division do
         parent League
       end
     end
