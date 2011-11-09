@@ -15,9 +15,8 @@ module RailsAdmin
       @page_type = "dashboard"
 
       @history= History.all
-
       @abstract_models = RailsAdmin::Config.visible_models.map(&:abstract_model)
-
+      
       @most_recent_changes = {}
       @count = {}
       @max = 0
@@ -187,7 +186,7 @@ module RailsAdmin
     def destroy
       @authorization_adapter.authorize(:destroy, @abstract_model, @object) if @authorization_adapter
 
-      if @object.destroy
+      if @abstract_model.destroy(@object)
         History.create_history_item("Destroyed #{@model_config.with(:object => @object).object_label}", @object, @abstract_model, _current_user)
         flash[:success] = t("admin.flash.successful", :name => @model_config.label, :action => t("admin.actions.deleted"))
       else
@@ -230,8 +229,7 @@ module RailsAdmin
       @authorization_adapter.authorize(:bulk_delete, @abstract_model) if @authorization_adapter
       @page_name = t("admin.actions.delete").capitalize + " " + @model_config.label.downcase
       @page_type = @abstract_model.pretty_name.downcase
-
-      @objects = list_entries
+      @objects = list_entries(@model_config, :destroy)
       not_found and return if @objects.empty?
       
       render :action => 'bulk_delete'
@@ -239,11 +237,9 @@ module RailsAdmin
 
     def bulk_destroy
       @authorization_adapter.authorize(:bulk_destroy, @abstract_model) if @authorization_adapter
-      destroy_scope = @authorization_adapter && @authorization_adapter.query(:destroy, @abstract_model)
-      @objects = list_entries(destroy_scope)
-      
+      @objects = list_entries(@model_config, :destroy)
       processed_objects = @abstract_model.destroy(@objects)
-
+      
       destroyed = processed_objects.select(&:destroyed?)
       not_destroyed = processed_objects - destroyed
 
@@ -261,8 +257,17 @@ module RailsAdmin
       end
 
       redirect_to index_path
+    end    
+    
+    def list_entries(model_config = @model_config, auth_scope_key = :index, additional_scope = get_association_scope_from_params)
+      scope = @authorization_adapter && @authorization_adapter.query(auth_scope_key, model_config.abstract_model)
+      scope = model_config.abstract_model.scoped.merge(scope)
+      scope = scope.instance_eval(&additional_scope) if additional_scope
+      get_collection(model_config, scope)
     end
-
+    
+    private
+    
     def get_sort_hash(model_config)
       abstract_model = model_config.abstract_model
       params[:sort] = params[:sort_reverse] = nil unless model_config.list.with(:view => self, :object => abstract_model.model.new).visible_fields.map {|f| f.name.to_s}.include? params[:sort]
@@ -289,6 +294,7 @@ module RailsAdmin
       reversed_sort = (field ? field.sort_reverse? : model_config.list.sort_reverse?)
       {:sort => column, :sort_reverse => (params[:sort_reverse] == reversed_sort.to_s)}
     end
+
     
     def get_attributes
       @attributes = params[@abstract_model.to_param.singularize.gsub('~','_')] || {}
@@ -301,7 +307,7 @@ module RailsAdmin
         @attributes[key] = nil if value.blank?
       end
     end
-
+    
     def redirect_to_on_success
       notice = t("admin.flash.successful", :name => @model_config.label, :action => t("admin.actions.#{params[:action]}d"))
       if params[:_add_another]
@@ -324,35 +330,31 @@ module RailsAdmin
         format.js   { render whereto, :layout => false, :status => :not_acceptable  }
       end
     end
-
+    
     def check_for_cancel
       redirect_to index_path, :flash => { :warning => t("admin.flash.noaction") } if params[:_continue]
-    end
-
-    def list_entries(scope = nil)
-      scope = @abstract_model.scoped.merge(scope)
-      if params[:associated_collection].present? # need to add source's model associated_collection_scope on collection
-        source_abstract_model = RailsAdmin::AbstractModel.new(to_model_name(params[:source_abstract_model]))
-        source_model_config = RailsAdmin.config(source_abstract_model)
-        source_object = source_abstract_model.get(params[:source_object_id])
-        action = params[:current_action].in?(['create', 'update']) ? params[:current_action] : 'edit'
-        association = source_model_config.send(action).fields.find{|f| f.name == params[:associated_collection].to_sym }.with(:controller => self, :object => source_object)
-        scope = scope.instance_eval(&association.associated_collection_scope) if association.associated_collection_scope
-      end
-      get_collection(@model_config, scope)
     end
     
     def get_collection(model_config, scope)
       associations = model_config.list.fields.select {|f| f.type == :belongs_to_association && !f.polymorphic? }.map {|f| f.association[:name] }
-      scope = scope.merge(@authorization_adapter && @authorization_adapter.query(:index, model_config.abstract_model))
-      
       options = {}
-      options = options.merge(:page => (params[:page] || 1).to_i, :per => (params[:per] || model_config.list.items_per_page)) unless params[:compact] || params[:all]
+      options = options.merge(:page => (params[:page] || 1).to_i, :per => (params[:per] || model_config.list.items_per_page)) if params[:action] == 'index'
       options = options.merge(:include => associations) unless associations.blank?
       options = options.merge(get_sort_hash(model_config)) unless params[:associated_collection]
-      options = options.merge(model_config.abstract_model.get_conditions_hash(params[:query], params[:filters], model_config))
+      options = options.merge(model_config.abstract_model.get_conditions_hash(model_config, params[:query], params[:filters])) if params[:query] || params[:filters]
       options = options.merge(:bulk_ids => params[:bulk_ids]) if params[:bulk_ids]
+      
       objects = model_config.abstract_model.all(options, scope)
+    end
+    
+    def get_association_scope_from_params
+      return nil unless params[:associated_collection].present?
+      source_abstract_model = RailsAdmin::AbstractModel.new(to_model_name(params[:source_abstract_model]))
+      source_model_config = RailsAdmin.config(source_abstract_model)
+      source_object = source_abstract_model.get(params[:source_object_id])
+      action = params[:current_action].in?(['create', 'update']) ? params[:current_action] : 'edit'
+      association = source_model_config.send(action).fields.find{|f| f.name == params[:associated_collection].to_sym }.with(:controller => self, :object => source_object)
+      association.associated_collection_scope
     end
     
     def associations_hash
