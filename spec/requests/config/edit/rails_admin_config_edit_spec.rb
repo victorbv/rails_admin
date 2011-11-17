@@ -34,6 +34,13 @@ describe "RailsAdmin Config DSL Edit Section" do
       @field_test.restricted_field.should == "I'm allowed to do that as :custom_role only"
     end
   end
+  
+  describe "css hooks" do
+    it "should be present" do
+      visit new_path(:model_name => "team")
+      should have_selector("#team_division_id_field.field.belongs_to_association_type.division_field")
+    end
+  end
 
   describe "field groupings" do
 
@@ -135,6 +142,68 @@ describe "RailsAdmin Config DSL Edit Section" do
         should have_selector("legend small", :text => 'help for other section')
         should have_selector("legend small", :count => 2)
       end
+
+      it "should use the db column size for the maximum length" do
+        visit new_path(:model_name => "team")
+        find("#team_name_field .help-block").should have_content("Length up to 50.")
+      end
+      
+# FIXME validates_length_of are leaking in FactoryGirl WTF?
+
+      it "should use the :is setting from the validation" do
+ #        class Team
+ #          validates_length_of :name, :is => 3
+ #        end
+ #        visit new_path(:model_name => "team")
+ #        find("#team_name_field .help-block").should have_content("Length of 3.")
+ #        Team._validators[:name] = []
+      end
+
+      it "should use the :minimum setting from the validation" do
+        class Team
+          validates_length_of :name, :minimum => 1
+        end
+        visit new_path(:model_name => "team")
+        find("#team_name_field .help-block").should have_content("Length of 1-50.")
+        Team._validators[:name] = []
+      end
+
+      it "should use the :maximum setting from the validation" do
+        class Team
+          validates_length_of :name, :maximum => 49
+        end
+        visit new_path(:model_name => "team")
+        find("#team_name_field .help-block").should have_content("Length up to 49.")
+        Team._validators[:name] = []
+      end
+
+      it "should use the minimum of db column size or :maximum setting from the validation" do
+        class Team
+          validates_length_of :name, :maximum => 51
+        end
+        visit new_path(:model_name => "team")
+        find("#team_name_field .help-block").should have_content("Length up to 50.")
+        Team._validators[:name] = []
+      end
+
+      it "should use the :minimum and :maximum from the validation" do
+        class Team
+          validates_length_of :name, :minimum => 1, :maximum => 49
+        end
+        visit new_path(:model_name => "team")
+        find("#team_name_field .help-block").should have_content("Length of 1-49.")
+        Team._validators[:name] = []
+      end
+
+      it "should use the range from the validation" do
+        class Team
+          validates_length_of :name, :in => 1..49
+        end
+        visit new_path(:model_name => "team")
+        find("#team_name_field .help-block").should have_content("Length of 1-49.")
+        Team._validators[:name] = []
+      end
+
     end
 
     it "should have accessor for its fields" do
@@ -397,9 +466,9 @@ describe "RailsAdmin Config DSL Edit Section" do
         end
       end
       visit new_path(:model_name => "team")
-      find("#team_manager_field .help-block").should have_content("Required. 100 characters or fewer. Additional help text for manager field.")
+      find("#team_manager_field .help-block").should have_content("Required. Length up to 100. Additional help text for manager field.")
       find("#team_division_id_field .help-block").should have_content("Required")
-      find("#team_name_field .help-block").should have_content("Optional. 50 characters or fewer.")
+      find("#team_name_field .help-block").should have_content("Optional. Length up to 50.")
     end
 
     it "should have option to override required status" do
@@ -417,9 +486,9 @@ describe "RailsAdmin Config DSL Edit Section" do
         end
       end
       visit new_path(:model_name => "team")
-      find("#team_manager_field .help-block").should have_content("Optional. 100 characters or fewer.")
+      find("#team_manager_field .help-block").should have_content("Optional. Length up to 100.")
       find("#team_division_id_field .help-block").should have_content("Optional")
-      find("#team_name_field .help-block").should have_content("Required. 50 characters or fewer.")
+      find("#team_name_field .help-block").should have_content("Required. Length up to 50.")
     end
   end
 
@@ -681,7 +750,7 @@ describe "RailsAdmin Config DSL Edit Section" do
         end
       end
       visit new_path(:model_name => "team")
-      should have_selector("select.enum")
+      should have_selector(".enum_type select")
       should have_content("green")
       Team.send(:remove_method, :color_enum) # Reset
     end
@@ -700,7 +769,7 @@ describe "RailsAdmin Config DSL Edit Section" do
         end
       end
       visit new_path(:model_name => "team")
-      should have_selector("select.enum")
+      should have_selector(".enum_type select")
       should have_content("green")
       Team.send(:remove_method, :color_list) # Reset
     end
@@ -722,7 +791,7 @@ describe "RailsAdmin Config DSL Edit Section" do
         end
       end
       visit new_path(:model_name => "team")
-      should have_selector("select.enum")
+      should have_selector(".enum_type select")
       should have_no_content("green")
       should have_content("yellow")
       Team.send(:remove_method, :color_list) # Reset
@@ -738,7 +807,7 @@ describe "RailsAdmin Config DSL Edit Section" do
         end
       end
       visit new_path(:model_name => "team")
-      should have_selector("input.color")
+      should have_selector(".color_type input")
     end
   end
 end

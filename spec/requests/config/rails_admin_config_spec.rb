@@ -3,6 +3,35 @@ require 'spec_helper'
 describe "RailsAdmin Config DSL" do
 
   subject { page }
+  
+  describe "configure" do
+    it "should configure without changing the section default list" do
+      RailsAdmin.config Team do
+        edit do
+          configure :name do
+            label "Renamed"
+          end
+        end
+      end
+      fields = RailsAdmin.config(Team).edit.fields
+      fields.find{|f| f.name == :name }.label.should == "Renamed"
+      fields.count.should >= 19 # not 1
+    end
+    
+    it "should not change the section list if set" do
+      RailsAdmin.config Team do
+        edit do
+          field :manager
+          configure :name do
+            label "Renamed"
+          end
+        end
+      end
+      fields = RailsAdmin.config(Team).edit.fields
+      fields.first.name.should == :manager
+      fields.count.should == 1 # not 19
+    end
+  end
 
   describe "excluded models" do
     excluded_models = [Division, Draft, Fan]
@@ -76,6 +105,22 @@ describe "RailsAdmin Config DSL" do
       @league = FactoryGirl.create :league
 
       RailsAdmin.config('League').with(:object => @league).object_label.should == "League '#{@league.name}'"
+    end
+  end
+  
+  describe "css_class" do
+    it "should have a default and be user customizable" do
+      RailsAdmin.config Team do
+        list do
+          field :division do
+            css_class "custom"
+          end
+          field :name
+        end
+      end
+      RailsAdmin.config('Team').list.fields.find{|f| f.name == :division}.css_class.should == "custom" # custom
+      RailsAdmin.config('Team').list.fields.find{|f| f.name == :division}.type_css_class.should == "belongs_to_association_type" # type css class, non-customizable
+      RailsAdmin.config('Team').list.fields.find{|f| f.name == :name}.css_class.should == "name_field" # default
     end
   end
 

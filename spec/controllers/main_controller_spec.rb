@@ -1,10 +1,22 @@
 require 'spec_helper'
 
 describe RailsAdmin::MainController do
+  describe "list_entries called from view" do
+    before do
+      @teams = 40.times.map { FactoryGirl.create :team }
+      controller.params = { :model_name => "teams" }
+    end
+    
+    it "should paginate" do
+      controller.list_entries(RailsAdmin.config(Team), :index, nil, false).length.should == 40
+      controller.list_entries(RailsAdmin.config(Team), :index, nil, true).length.should == 20
+    end
+  end 
+  
   describe "list_entries for associated_collection" do
     before do
       @team = FactoryGirl.create :team      
-      controller.params = { :associated_collection => "players", :current_action => "update", :source_abstract_model => 'teams', :source_object_id => @team.id, :model_name => "players" }
+      controller.params = { :associated_collection => "players", :current_action => "update", :source_abstract_model => 'teams', :source_object_id => @team.id, :model_name => "players", :action => 'index' }
       controller.get_model # set @model_config for Team
     end
     
