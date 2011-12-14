@@ -13,18 +13,6 @@ module RailsAdmin
         include RailsAdmin::Config::HasFields
         include RailsAdmin::Config::HasGroups
 
-        def self.default_hidden_fields
-          ActiveSupport::Deprecation.warn("'#{self.name}.default_hidden_fields' is deprecated, use 'RailsAdmin::Config.default_hidden_fields' instead", caller)
-          RailsAdmin::Config.default_hidden_fields
-        end
-
-        def self.default_hidden_fields=(value)
-          ActiveSupport::Deprecation.warn("'#{self.name}.default_hidden_fields=' is deprecated, use 'RailsAdmin.config{|c| c.default_hidden_fields = #{value}}' instead", caller)
-          RailsAdmin.config do |config|
-            config.default_hidden_fields = value
-          end
-        end
-
         def initialize(parent)
           super(parent)
           # Populate @fields instance variable with model's properties
@@ -34,11 +22,7 @@ module RailsAdmin
           end
           @fields = RailsAdmin::Config::Fields.factory(self)
           @fields.each do |f|
-            if f.association? && f.type != :belongs_to_association
-              f.group f.label.to_sym
-            else
-              f.group :default
-            end
+            f.group :default
             if f.serial? || RailsAdmin::Config.default_hidden_fields.include?(f.name)
               f.hide
             end

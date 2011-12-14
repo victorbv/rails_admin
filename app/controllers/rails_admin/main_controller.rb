@@ -2,7 +2,7 @@ module RailsAdmin
 
   class MainController < RailsAdmin::ApplicationController
     include ActionView::Helpers::TextHelper
-
+    
     layout "rails_admin/application"
 
     before_filter :get_model, :except => [:dashboard]
@@ -14,9 +14,9 @@ module RailsAdmin
       @page_name = t("admin.dashboard.pagename")
       @page_type = "dashboard"
 
-      @history= History.all
+      @history = History.latest
       @abstract_models = RailsAdmin::Config.visible_models.map(&:abstract_model)
-      
+
       @most_recent_changes = {}
       @count = {}
       @max = 0
@@ -191,7 +191,7 @@ module RailsAdmin
         flash[:error] = t("admin.flash.error", :name => @model_config.label, :action => t("admin.actions.deleted"))
       end
 
-      redirect_to index_path(:model_name => @abstract_model.to_param)
+      redirect_to back_or_index
     end
 
     def export
@@ -216,11 +216,11 @@ module RailsAdmin
     end
 
     def bulk_action
-      redirect_to index_path, :flash => { :info => t("admin.flash.noaction") } and return if params[:bulk_ids].blank?
+      redirect_to :back, :flash => { :info => t("admin.flash.noaction") } and return if params[:bulk_ids].blank?
       case params[:bulk_action]
       when "delete" then bulk_delete
       when "export" then export
-      else redirect_to(index_path(:model_name => @abstract_model.to_param), :flash => { :info => t("admin.flash.noaction") })
+      else raise "#{params[:bulk_action]} not implemented"
       end
     end
 
@@ -230,7 +230,7 @@ module RailsAdmin
       @page_type = @abstract_model.pretty_name.downcase
       @objects = list_entries(@model_config, :destroy)
       not_found and return if @objects.empty?
-      
+
       render :action => 'bulk_delete'
     end
 
@@ -238,7 +238,7 @@ module RailsAdmin
       @authorization_adapter.authorize(:bulk_destroy, @abstract_model) if @authorization_adapter
       @objects = list_entries(@model_config, :destroy)
       processed_objects = @abstract_model.destroy(@objects)
-      
+
       destroyed = processed_objects.select(&:destroyed?)
       not_destroyed = processed_objects - destroyed
 
@@ -255,18 +255,23 @@ module RailsAdmin
         flash[:error] = t("admin.flash.error", :name => pluralize(not_destroyed.count, @model_config.label), :action => t("admin.actions.deleted"))
       end
 
-      redirect_to index_path
-    end    
-    
+      redirect_to back_or_index
+    end
+
     def list_entries(model_config = @model_config, auth_scope_key = :index, additional_scope = get_association_scope_from_params, pagination = !(params[:associated_collection] || params[:all]))
       scope = @authorization_adapter && @authorization_adapter.query(auth_scope_key, model_config.abstract_model)
       scope = model_config.abstract_model.scoped.merge(scope)
       scope = scope.instance_eval(&additional_scope) if additional_scope
+      
       get_collection(model_config, scope, pagination)
     end
-    
+
     private
     
+    def back_or_index
+      params[:return_to].presence && params[:return_to].include?(request.host) && (params[:return_to] != request.fullpath) ? params[:return_to] : index_path
+    end
+
     def get_sort_hash(model_config)
       abstract_model = model_config.abstract_model
       params[:sort] = params[:sort_reverse] = nil unless model_config.list.with(:view => self, :object => abstract_model.model.new).visible_fields.map {|f| f.name.to_s}.include? params[:sort]
@@ -294,7 +299,7 @@ module RailsAdmin
       {:sort => column, :sort_reverse => (params[:sort_reverse] == reversed_sort.to_s)}
     end
 
-    
+
     def get_attributes
       @attributes = params[@abstract_model.to_param.singularize.gsub('~','_')] || {}
       @attributes.each do |key, value|
@@ -306,15 +311,15 @@ module RailsAdmin
         @attributes[key] = nil if value.blank?
       end
     end
-    
+
     def redirect_to_on_success
       notice = t("admin.flash.successful", :name => @model_config.label, :action => t("admin.actions.#{params[:action]}d"))
       if params[:_add_another]
-        redirect_to new_path, :flash => { :success => notice }
+        redirect_to new_path(:return_to => params[:return_to]), :flash => { :success => notice }
       elsif params[:_add_edit]
-        redirect_to edit_path(:id => @object.id), :flash => { :success => notice }
+        redirect_to edit_path(:id => @object.id, :return_to => params[:return_to]), :flash => { :success => notice }
       else
-        redirect_to index_path, :flash => { :success => notice }
+        redirect_to back_or_index, :flash => { :success => notice }
       end
     end
 
@@ -329,11 +334,11 @@ module RailsAdmin
         format.js   { render whereto, :layout => false, :status => :not_acceptable  }
       end
     end
-    
+
     def check_for_cancel
-      redirect_to index_path, :flash => { :warning => t("admin.flash.noaction") } if params[:_continue]
+      redirect_to back_or_index, :flash => { :info => t("admin.flash.noaction") } if params[:_continue]
     end
-    
+
     def get_collection(model_config, scope, pagination)
       associations = model_config.list.fields.select {|f| f.type == :belongs_to_association && !f.polymorphic? }.map {|f| f.association[:name] }
       options = {}
@@ -342,10 +347,10 @@ module RailsAdmin
       options = options.merge(get_sort_hash(model_config)) unless params[:associated_collection]
       options = options.merge(model_config.abstract_model.get_conditions_hash(model_config, params[:query], params[:f])) if (params[:query].present? || params[:f].present?)
       options = options.merge(:bulk_ids => params[:bulk_ids]) if params[:bulk_ids]
-      
+
       objects = model_config.abstract_model.all(options, scope)
     end
-    
+
     def get_association_scope_from_params
       return nil unless params[:associated_collection].present?
       source_abstract_model = RailsAdmin::AbstractModel.new(to_model_name(params[:source_abstract_model]))
@@ -355,7 +360,7 @@ module RailsAdmin
       association = source_model_config.send(action).fields.find{|f| f.name == params[:associated_collection].to_sym }.with(:controller => self, :object => source_object)
       association.associated_collection_scope
     end
-    
+
     def associations_hash
       associations = {}
       @abstract_model.associations.each do |association|
