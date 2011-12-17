@@ -50,11 +50,11 @@ module RailsAdmin
       end
 
       register_instance_option(:label) do
-        @label ||= abstract_model.model.model_name.human(:default => abstract_model.model.model_name.demodulize.underscore.humanize)
+        (@label ||= {})[::I18n.locale] ||= abstract_model.model.model_name.human(:default => abstract_model.model.model_name.demodulize.underscore.humanize)
       end
 
       register_instance_option(:label_plural) do
-        @label_plural ||= abstract_model.model.model_name.human(:count => 2, :default => label.pluralize)
+        (@label_plural ||= {})[::I18n.locale] ||= abstract_model.model.model_name.human(:count => 2, :default => label.pluralize)
       end
 
       register_instance_option(:weight) do
@@ -65,8 +65,6 @@ module RailsAdmin
         :root
       end
 
-      register_deprecated_instance_option(:dropdown, :navigation_label) # same API, deprecated 2011-07-21
-
       register_instance_option(:navigation_label) do
         false
       end
@@ -75,7 +73,7 @@ module RailsAdmin
       # store the configurations.
       def method_missing(m, *args, &block)
         responded_to = false
-        [:create, :list, :show, :navigation, :update, :export].each do |s|
+        [:create, :list, :show, :update, :export].each do |s|
           section = send(s)
           if section.respond_to?(m)
             responded_to = true

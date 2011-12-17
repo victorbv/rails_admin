@@ -1,3 +1,5 @@
+# coding: utf-8
+
 require 'spec_helper'
 
 describe "RailsAdmin Config DSL Edit Section" do
@@ -34,7 +36,7 @@ describe "RailsAdmin Config DSL Edit Section" do
       @field_test.restricted_field.should == "I'm allowed to do that as :custom_role only"
     end
   end
-  
+
   describe "css hooks" do
     it "should be present" do
       visit new_path(:model_name => "team")
@@ -70,10 +72,12 @@ describe "RailsAdmin Config DSL Edit Section" do
       should have_no_selector("input#team_revenue")
     end
 
-    it "should hide association groupings by the name of the association" do
+    it "should hide association groupings" do
       RailsAdmin.config Team do
         edit do
           group :players do
+            label "Players"
+            field :players
             hide
           end
         end
@@ -147,7 +151,7 @@ describe "RailsAdmin Config DSL Edit Section" do
         visit new_path(:model_name => "team")
         find("#team_name_field .help-block").should have_content("Length up to 50.")
       end
-      
+
 # FIXME validates_length_of are leaking in FactoryGirl WTF?
 
       it "should use the :is setting from the validation" do
@@ -300,7 +304,7 @@ describe "RailsAdmin Config DSL Edit Section" do
       should have_selector(".field", :count => 2)
     end
 
-    it "should delegates the label option to the ActiveModel API" do
+    it "should delegates the label option to the ActiveModel API and memoize I18n awarly" do
       RailsAdmin.config Team do
         edit do
           field :manager
@@ -310,6 +314,11 @@ describe "RailsAdmin Config DSL Edit Section" do
       visit new_path(:model_name => "team")
       should have_selector("label", :text => "Team Manager")
       should have_selector("label", :text => "Some Fans")
+      I18n.locale = :fr
+      visit new_path(:model_name => "team")
+      should have_selector("label", :text => "Manager de l'équipe")
+      should have_selector("label", :text => "Quelques fans")
+      I18n.locale = :en
     end
 
     it "should be renameable" do
@@ -673,6 +682,28 @@ describe "RailsAdmin Config DSL Edit Section" do
         @record = RailsAdmin::AbstractModel.new("FieldTest").first
         @record.date_field.should eql(::Date.parse(@time.to_s))
       end
+    end
+  end
+  
+  describe 'nested form' do 
+
+    it 'should work' do
+      RailsAdmin::Config.excluded_models = [RelTest]
+      visit new_path(:model_name => "field_test")
+      fill_in "field_test_comment_attributes_content", :with => 'nested comment content'
+      click_button "Save"
+      @record = RailsAdmin::AbstractModel.new("FieldTest").first
+      @record.comment.content.should == 'nested comment content'
+      @record.nested_field_tests = [NestedFieldTest.create!(:title => 'title 1'), NestedFieldTest.create!(:title => 'title 2')]
+      visit edit_path(:model_name => "field_test", :id => @record.id)
+      fill_in "field_test_nested_field_tests_attributes_0_title", :with => 'nested field test title 1 edited'
+      page.find('#field_test_comment_attributes__destroy').set('true')
+      page.find('#field_test_nested_field_tests_attributes_1__destroy').set('true')
+      click_button "Save"
+      @record.reload
+      @record.comment.should == nil
+      @record.nested_field_tests.length.should == 1
+      @record.nested_field_tests[0].title.should == 'nested field test title 1 edited'
     end
   end
 

@@ -1,4 +1,4 @@
-source 'http://rubygems.org'
+source 'https://rubygems.org'
 
 # Bundle gems for the local environment. Make sure to
 # put test-only gems in this group so their generators
@@ -39,7 +39,7 @@ end
 group :debug do
   platform :mri_18 do
     gem 'ruby-debug'
-    gem 'linecache', '<= 0.45'
+    gem 'linecache'
   end
 
   platform :mri_19 do
