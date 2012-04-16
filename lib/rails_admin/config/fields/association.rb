@@ -21,17 +21,10 @@ module RailsAdmin
             amc = polymorphic? ? RailsAdmin::Config.model(associated) : associated_model_config # perf optimization for non-polymorphic associations
             am = amc.abstract_model
             wording = associated.send(amc.object_label_method)
-            can_see = v.authorized?(:show, am, associated)
-            can_see ? v.link_to(wording, v.show_path(:model_name => am.to_param, :id => associated.id)) : wording
+            can_see = v.authorized?(:show, am, associated) && !am.embedded?
+            can_see = can_see && (show_action = RailsAdmin::Config::Actions.find(:show, { :controller => v.controller, :abstract_model => am, :object => associated }))
+            can_see ? v.link_to(wording, v.url_for(:action => show_action.action_name, :model_name => am.to_param, :id => associated.id), :class => 'pjax') : wording
           end.to_sentence.html_safe
-        end
-
-        register_instance_option(:sortable) do
-          false
-        end
-
-        register_instance_option(:searchable) do
-          false
         end
 
         # Accessor whether association is visible or not. By default
@@ -63,42 +56,51 @@ module RailsAdmin
 
         # Reader for the association's child model's configuration
         def associated_model_config
-          @associated_model_config ||= RailsAdmin.config(association[:child_model])
+          @associated_model_config ||= RailsAdmin.config(association[:model_proc].call)
         end
 
         # Reader for the association's child model object's label method
-        def associated_label_method
-          @associated_label_method ||= associated_model_config.object_label_method
+        def associated_object_label_method
+          @associated_object_label_method ||= associated_model_config.object_label_method
         end
-
-        # Reader for the association's child key
-        def child_key
-          association[:child_key]
+        
+        # Reader for associated primary key
+        def associated_primary_key
+          @associated_primary_key ||= association[:primary_key_proc].call
+        end
+        
+        # Reader for the association's key
+        def foreign_key
+          association[:foreign_key]
         end
 
         # Reader for the inverse relationship
         def inverse_of
           association[:inverse_of]
         end
-
-        # Reader for validation errors of the bound object
-        def errors
-          bindings[:object].errors[child_key]
-        end
-
+        
         # Reader whether this is a polymorphic association
         def polymorphic?
           association[:polymorphic]
         end
-        
+
         # Reader for nested attributes
-        def nested_form
+        register_instance_option :nested_form do
           association[:nested_form]
         end
 
         # Reader for the association's value unformatted
         def value
           bindings[:object].send(association[:name])
+        end
+        
+        # has many?
+        def multiple?
+          true
+        end
+        
+        def virtual?
+          true
         end
       end
     end

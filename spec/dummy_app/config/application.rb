@@ -1,13 +1,21 @@
 require File.expand_path('../boot', __FILE__)
 
-require 'rails/all'
-require 'devise'
-require 'paperclip'
-require 'carrierwave'
-# If you have a Gemfile, require the default gems, the ones in the
-# current environment and also include :assets gems if in development
-# or test environments.
-Bundler.require *Rails.groups(:assets) if defined?(Bundler)
+require "action_controller/railtie"
+require "action_mailer/railtie"
+require "active_resource/railtie"
+require "sprockets/railtie"
+
+begin
+  require "#{CI_ORM}/railtie"
+rescue LoadError
+end
+
+if defined?(Bundler)
+  # If you precompile assets before deploying to production, use this line
+  # Bundler.require(*Rails.groups(:assets => %w(development test)))
+  # If you want your assets lazily compiled in production, use this line
+  Bundler.require(:default, :assets, Rails.env, CI_ORM)
+end
 
 module DummyApp
   class Application < Rails::Application
@@ -17,6 +25,8 @@ module DummyApp
 
     # Custom directories with classes and modules you want to be autoloadable.
     # config.autoload_paths += %W(#{config.root}/extras)
+    config.eager_load_paths.reject!{ |p| p =~ /\/app\/(\w+)$/ && !%w(controllers helpers views).push(CI_ORM).include?($1) }
+    config.autoload_paths += %W(#{config.root}/app/#{CI_ORM})
 
     # Only load the plugins named here, in the order given (default is alphabetical).
     # :all can be used as a placeholder for all plugins not explicitly named.
@@ -39,9 +49,21 @@ module DummyApp
     # Configure sensitive parameters which will be filtered from the log file.
     config.filter_parameters += [:password]
 
+    # Use SQL instead of Active Record's schema dumper when creating the database.
+    # This is necessary if your schema can't be completely dumped by the schema dumper,
+    # like if you have constraints or database-specific column types
+    # config.active_record.schema_format = :sql
+
+    # Enforce whitelist mode for mass assignment.
+    # This will create an empty whitelist of attributes available for mass-assignment for all models
+    # in your app. As such, your models will need to explicitly whitelist or blacklist accessible
+    # parameters by using an attr_accessible or attr_protected declaration.
+    # config.active_record.whitelist_attributes = true
+
     # Enable the asset pipeline
     config.assets.enabled = true
 
-    config.autoload_paths += Dir["#{config.root}/app/models/**/"]
+    # Version of your assets, change this if you want to expire all your assets
+    config.assets.version = '1.0'
   end
 end

@@ -3,6 +3,8 @@ require 'rails_admin/abstract_model'
 require 'rails_admin/config'
 require 'rails_admin/extension'
 require 'rails_admin/extensions/cancan'
+require 'rails_admin/extensions/paper_trail'
+require 'rails_admin/extensions/history'
 require 'rails_admin/support/csv_converter'
 require 'rails_admin/support/core_extensions'
 
@@ -28,10 +30,5 @@ module RailsAdmin
     else
       RailsAdmin::Config
     end
-  end
-
-  # Reset RailsAdmin configuration to defaults
-  def self.reset
-    RailsAdmin::Config.reset
   end
 end

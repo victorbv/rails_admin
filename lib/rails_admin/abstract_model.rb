@@ -1,73 +1,108 @@
-require 'active_support/core_ext/string/inflections'
-require 'rails_admin/generic_support'
-
 module RailsAdmin
   class AbstractModel
-    cattr_accessor :all_models, :all_abstract_models
-    @@all_models = nil
-    @@all_abstract_models = nil
-    # Returns all models for a given Rails app
+    cattr_accessor :all
+    attr_reader :adapter, :model_name
 
-    # self.all_abstract_models
-    def self.all
-      @@all_abstract_models ||= all_models.map{ |model| new(model) }
-    end
+    class << self
+      def reset
+        @@all = nil
+      end
 
-    def self.all_models
-      @@all_models ||= (
-        possible_models = RailsAdmin::Config.included_models.map(&:to_s).presence || ([Rails.application] + Rails::Application::Railties.engines).map do |app|
-          (app.paths['app/models'] + app.config.autoload_paths).map do |load_path|
-            Dir.glob(app.root.join(load_path)).map do |load_dir|
-              Dir.glob(load_dir + "/**/*.rb").map do |filename|
-                lchomp(filename, "#{app.root.join(load_dir)}/").chomp('.rb').camelize  # app/models/module/class.rb => module/class.rb => module/class => Module::Class
-              end
-            end
-          end
-        end.flatten
-        excluded_models = (RailsAdmin::Config.excluded_models.map(&:to_s) + ['RailsAdmin::History'])
-        (possible_models - excluded_models).uniq.sort{|x, y| x.to_s <=> y.to_s}.map{|model| lookup(model) }.compact
-      )
-    end
+      def all(adapter = nil)
+        @@all ||= Config.models_pool.map{ |m| new(m) }.compact
+        adapter ? @@all.select{|m| m.adapter == adapter} : @@all
+      end
 
-    # Given a string +model_name+, finds the corresponding model class
-    def self.lookup(model_name)
-      model = model_name.constantize rescue nil
-      if model && model.is_a?(Class) && superclasses(model).include?(ActiveRecord::Base) && !model.abstract_class?
-        model
-      else
+      alias_method :old_new, :new
+      def new(m)
+        m = m.is_a?(Class) ? m : m.constantize
+        (am = old_new(m)).model && am.adapter ? am : nil
+      rescue LoadError, NameError
         nil
       end
-    rescue LoadError
-      Rails.logger.error "Error while loading '#{model_name}': #{$!}"
-      nil
+
+      @@polymorphic_parents = {}
+
+      def polymorphic_parents(adapter, name)
+        @@polymorphic_parents[adapter.to_sym] ||= {}.tap do |hash|
+          all(adapter).each do |am|
+            am.associations.select{|r| r[:as] }.each do |association|
+              (hash[association[:as].to_sym] ||= []) << am.model
+            end
+          end
+        end
+        @@polymorphic_parents[adapter.to_sym][name.to_sym]
+      end
+
+      # For testing
+      def reset_polymorphic_parents
+        @@polymorphic_parents = {}
+      end
     end
 
-    def initialize(model)
-      model = self.class.lookup(model.to_s.camelize) unless model.is_a?(Class)
-      @model_name = model.name
-      self.extend(GenericSupport)
-      ### TODO more ORMs support
-      require 'rails_admin/adapters/active_record'
-      self.extend(RailsAdmin::Adapters::ActiveRecord)
+    def initialize(m)
+      @model_name = m.to_s
+      if m.ancestors.map(&:to_s).include?('ActiveRecord::Base') && !m.abstract_class?
+        # ActiveRecord
+        @adapter = :active_record
+        require 'rails_admin/adapters/active_record'
+        extend Adapters::ActiveRecord
+      elsif m.ancestors.map(&:to_s).include?('Mongoid::Document')
+        # Mongoid
+        @adapter = :mongoid
+        require 'rails_admin/adapters/mongoid'
+        extend Adapters::Mongoid
+      end
     end
 
+    # do not store a reference to the model, does not play well with ActiveReload/Rails3.2
     def model
-      @model_name.constantize
+      @model_name.try :constantize
+    end
+
+    def config
+      Config.model self
+    end
+
+    def to_param
+      model.to_s.split("::").map(&:underscore).join("~")
+    end
+
+    def param_key
+      model.to_s.split("::").map(&:underscore).join("_")
+    end
+
+    def pretty_name
+      model.model_name.human
+    end
+
+    def where(conditions)
+      model.where(conditions)
     end
 
     private
 
-    def self.superclasses(klass)
-      superclasses = []
-      while klass
-        superclasses << klass.superclass if klass && klass.superclass
-        klass = klass.superclass
+    def get_filtering_duration(operator, value)
+      date_format = I18n.t("admin.misc.filter_date_format", :default => I18n.t("admin.misc.filter_date_format", :locale => :en)).gsub('dd', '%d').gsub('mm', '%m').gsub('yy', '%Y')
+      case operator
+      when 'between'
+        start_date = value[1].present? ? (Date.strptime(value[1], date_format) rescue false) : false
+        end_date   = value[2].present? ? (Date.strptime(value[2], date_format) rescue false) : false
+      when 'today'
+        start_date = end_date = Date.today
+      when 'yesterday'
+        start_date = end_date = Date.yesterday
+      when 'this_week'
+        start_date = Date.today.beginning_of_week
+        end_date   = Date.today.end_of_week
+      when 'last_week'
+        start_date = 1.week.ago.to_date.beginning_of_week
+        end_date   = 1.week.ago.to_date.end_of_week
+      else # default
+        start_date = (Date.strptime(Array.wrap(value).first, date_format) rescue false)
+        end_date   = (Date.strptime(Array.wrap(value).first, date_format) rescue false)
       end
-      superclasses
-    end
-
-    def self.lchomp(base, arg) # yeah.. delete was probably safe, but never know.
-      base.to_s.reverse.chomp(arg.to_s.reverse).reverse
+      [start_date, end_date]
     end
   end
 end

@@ -1,6 +1,22 @@
+# encoding: utf-8
+
 require 'spec_helper'
 
 describe RailsAdmin::MainController do
+
+
+  describe "get_sort_hash" do
+    it 'should work with belongs_to associations with label method virtual' do
+      controller.params = { :sort => "parent_category", :model_name =>"categories" }
+      controller.send(:get_sort_hash, RailsAdmin.config(Category)).should == {:sort=>"categories.parent_category_id", :sort_reverse=>true}
+    end
+
+    it 'should work with belongs_to associations with label method real column' do
+      controller.params = { :sort => "team", :model_name =>"players" }
+      controller.send(:get_sort_hash, RailsAdmin.config(Player)).should == {:sort=>"teams.name", :sort_reverse=>true}
+    end
+  end
+
   describe "list_entries called from view" do
     before do
       @teams = 40.times.map { FactoryGirl.create :team }
@@ -8,15 +24,15 @@ describe RailsAdmin::MainController do
     end
 
     it "should paginate" do
-      controller.list_entries(RailsAdmin.config(Team), :index, nil, false).length.should == 40
-      controller.list_entries(RailsAdmin.config(Team), :index, nil, true).length.should == 20
+      controller.list_entries(RailsAdmin.config(Team), :index, nil, false).to_a.length.should == 40
+      controller.list_entries(RailsAdmin.config(Team), :index, nil, true).to_a.length.should == 20
     end
   end
 
   describe "list_entries for associated_collection" do
     before do
       @team = FactoryGirl.create :team
-      controller.params = { :associated_collection => "players", :current_action => "update", :source_abstract_model => 'teams', :source_object_id => @team.id, :model_name => "players", :action => 'index' }
+      controller.params = { :associated_collection => "players", :current_action => "update", :source_abstract_model => 'team', :source_object_id => @team.id, :model_name => "player", :action => 'index' }
       controller.get_model # set @model_config for Team
     end
 
@@ -31,7 +47,7 @@ describe RailsAdmin::MainController do
         end
       end
 
-      controller.list_entries.length.should == @players.size
+      controller.list_entries.to_a.length.should == @players.size
     end
 
     it "scopes associated collection records according to associated_collection_scope" do
@@ -47,7 +63,7 @@ describe RailsAdmin::MainController do
         end
       end
 
-      controller.list_entries.length.should == 3
+      controller.list_entries.to_a.length.should == 3
     end
 
     it "scopes associated collection records according to bindings" do
@@ -69,7 +85,7 @@ describe RailsAdmin::MainController do
         end
       end
 
-      controller.list_entries.length.should == @team.revenue
+      controller.list_entries.to_a.length.should == @team.revenue.to_i
     end
 
 
@@ -83,7 +99,7 @@ describe RailsAdmin::MainController do
           associated_collection_cache_all false
         end
       end
-      controller.list_entries.length.should == 30
+      controller.list_entries.to_a.length.should == 30
 
       RailsAdmin.config Team do
         field :players do
@@ -93,6 +109,71 @@ describe RailsAdmin::MainController do
       controller.list_entries.length.should == @players.size
 
     end
+  end
 
+  describe "index" do
+    it "uses source association's primary key with :compact, not target model's default primary key", :skip_mongoid => true do
+      class TeamWithNumberedPlayers < Team
+        has_many :numbered_players, :class_name => 'Player', :primary_key => :number, :foreign_key => 'team_id'
+      end
+      FactoryGirl.create :team
+      TeamWithNumberedPlayers.first.numbered_players = [FactoryGirl.create(:player, :number => 123)]
+      returned = get :index, {:model_name => 'player', :source_object_id => Team.first.id, :source_abstract_model => 'team_with_numbered_players', :associated_collection => 'numbered_players', :current_action => :create, :compact => true, :format => :json}
+      returned.body.should =~ /\"id\"\:123/
+    end
+  end
+  
+  describe "sanitize_params_for!" do
+    it 'sanitize params recursively in nested forms' do
+      RailsAdmin.config Comment do
+        configure :created_at do
+          show
+        end
+      end
+      
+      RailsAdmin.config NestedFieldTest do
+        configure :created_at do
+          show
+        end
+      end
+
+      I18n.locale = :fr
+      controller.params = {
+        "field_test"=>{
+          :"datetime_field"=>"1 août 2010", 
+          "nested_field_tests_attributes"=>{
+            "new_1330520162002"=>{
+              "comment_attributes"=>{
+                :"created_at"=>"2 août 2010"
+              },
+              :"created_at"=>"3 août 2010"
+            }
+          }, 
+          "comment_attributes"=>{
+            :"created_at"=>"4 août 2010"
+          }
+        }
+      }
+      
+      controller.send(:sanitize_params_for!, :create, RailsAdmin.config(FieldTest), controller.params['field_test'])
+      
+      controller.params.should == {
+        "field_test"=>{
+          :datetime_field=>'Sun, 01 Aug 2010 00:00:00 UTC +00:00', 
+          "nested_field_tests_attributes"=>{
+            "new_1330520162002"=>{
+              "comment_attributes"=>{
+                :created_at=>'Mon, 02 Aug 2010 00:00:00 UTC +00:00'
+              }, 
+              :created_at=>'Tue, 03 Aug 2010 00:00:00 UTC +00:00'
+            }
+          }, 
+          "comment_attributes"=>{
+            :created_at=>'Wed, 04 Aug 2010 00:00:00 UTC +00:00'
+          }
+        }
+      }
+      I18n.locale = :en
+    end
   end
 end
