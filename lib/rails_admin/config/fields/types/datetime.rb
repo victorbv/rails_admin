@@ -41,7 +41,12 @@ module RailsAdmin
                   end
                 end
               end
-              ::Time.zone.parse(date_string, format)
+              parse_date_string(date_string)
+            end
+
+            # Parse normalized date strings using time zone
+            def parse_date_string(date_string)
+              ::Time.zone.parse(date_string)
             end
 
           end
@@ -102,8 +107,6 @@ module RailsAdmin
             }
 
             options = options.merge self.class.js_plugin_options
-
-            ActiveSupport::JSON.encode(options).html_safe
           end
 
           def localized_format(scope = [:time, :formats])
@@ -127,7 +130,7 @@ module RailsAdmin
           end
 
           def parse_input(params)
-            params[name] = self.class.normalize(params[name], "#{localized_date_format} #{localized_time_format}") if params[name]
+            params[name] = self.class.normalize(params[name], "#{localized_date_format} #{localized_time_format}") if params[name].present?
           end
 
           register_instance_option(:sort_reverse?) do

@@ -1,13 +1,10 @@
-source 'http://rubygems.org'
+source 'https://rubygems.org'
 
 # Bundle gems for the local environment. Make sure to
 # put test-only gems in this group so their generators
 # and rake tasks are available in development mode:
-group :development, :test do
+group :active_record do
   platforms :jruby do
-    gem 'jruby-openssl', '~> 0.7'
-    # activerecord-jdbc-adapter does not yet have a rails 3.1 compatible release
-    gem 'activerecord-jdbc-adapter', :git => 'git://github.com/jruby/activerecord-jdbc-adapter.git'
     case ENV['CI_DB_ADAPTER']
     when 'mysql'
       gem 'activerecord-jdbcmysql-adapter', '~> 1.2'
@@ -26,14 +23,26 @@ group :development, :test do
     when 'mysql'
       gem 'mysql', '~> 2.8'
     when 'postgresql'
-      gem 'pg', '~> 0.10'
+      gem 'pg', '~> 0.13'
     else
       gem 'sqlite3', '~> 1.3'
     end
   end
+  gem 'carrierwave'
+end
 
-  gem 'cancan'
-  gem 'silent-postgres'
+group :mongoid do
+  gem 'bson_ext', :platforms => [:ruby, :mswin, :mingw]
+  case ENV['CI_ORM_VERSION']
+  when 'head'
+    gem 'mongoid', :git => 'git://github.com/mongoid/mongoid.git'
+    # For now, carrierwave-mongoid's mongoid dependency is restricted to '~> 2.1'
+    gem 'carrierwave-mongoid', :require => 'carrierwave/mongoid', :git => 'git://github.com/tanordheim/carrierwave-mongoid.git', :branch => 'mongoid_3_0'
+  else
+    gem 'mongoid'
+    gem 'carrierwave-mongoid', :require => 'carrierwave/mongoid'
+  end
+  gem 'mongoid-paperclip', :require => 'mongoid_paperclip'
 end
 
 group :debug do
@@ -44,11 +53,22 @@ group :debug do
 
   platform :mri_19 do
     gem 'ruby-debug19'
+    gem 'simplecov', :require => false
+  end
+
+  platform :jruby do
+    gem 'ruby-debug'
   end
 end
 
 platforms :jruby, :mingw_18, :ruby_18 do
   gem 'fastercsv', '~> 1.5'
+end
+
+group :development, :test do
+  gem 'cancan'
+  gem 'devise'
+  gem 'paperclip', '~> 2.7'
 end
 
 gemspec

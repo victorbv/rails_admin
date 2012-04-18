@@ -1,0 +1,11 @@
+defaults: &defaults
+  use_utc: false
+  use_activesupport_time_zone: true
+
+development:
+  <<: *defaults
+  database: dummy_app_development
+
+test:
+  <<: *defaults
+  database: dummy_app_test

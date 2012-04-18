@@ -1,11 +1,11 @@
 if defined?(::ActiveRecord)
   class ActiveRecord::Base
     def self.rails_admin(&block)
-      ActiveSupport::Deprecation.warn("'#{self.name}.rails_admin { }' is deprecated, content is not evaluated anymore, use initializer instead", caller)
+      RailsAdmin::Config.model(self, &block)
     end
 
     def rails_admin_default_object_label_method
-      "#{self.class.to_s} ##{self.try :id}"
+      self.new_record? ? "new #{self.class.to_s}" : "#{self.class.to_s} ##{self.id}"
     end
 
     def safe_send(value)
